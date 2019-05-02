@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="12120" systemVersion="16G29" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="OpenSans-Light.ttf">
+            <string>OpenSans-Light</string>
+        </array>
+        <array key="OpenSans-Regular.ttf">
+            <string>OpenSans-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="BlockView" customModule="Communiti" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qPZ-DB-0vL">
+                    <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                    <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                </view>
+                <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qxb-bt-ebj">
+                    <rect key="frame" x="57" y="249" width="260" height="171"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Access Denied" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="U8M-3Y-1qZ">
+                            <rect key="frame" x="-0.5" y="0.0" width="260" height="40"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="40" id="nb2-4W-QHb"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" name="OpenSans-Regular" family="Open Sans" pointSize="18"/>
+                            <color key="textColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a6R-Te-Ohl">
+                            <rect key="frame" x="0.0" y="41" width="260" height="1"/>
+                            <color key="backgroundColor" red="0.74388900414336145" green="0.74388900414336145" blue="0.74388900414336145" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="1" id="M7y-pl-Cbn"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" text="Your account is currently under hold. Please contact the admin at http://www.communiti.io/contact-us/." textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="NIn-yP-eah">
+                            <rect key="frame" x="8" y="43" width="244" height="85"/>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            <fontDescription key="fontDescription" name="OpenSans-Light" family="Open Sans" pointSize="14"/>
+                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            <dataDetectorType key="dataDetectorTypes" link="YES" address="YES"/>
+                            <connections>
+                                <outlet property="delegate" destination="-1" id="yyg-Kz-iKF"/>
+                            </connections>
+                        </textView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VVv-gf-3TM">
+                            <rect key="frame" x="0.0" y="130" width="260" height="1"/>
+                            <color key="backgroundColor" red="0.74388900410000003" green="0.74388900410000003" blue="0.74388900410000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="1" id="h2t-H3-1ut"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                        <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QCj-fb-ZQX">
+                            <rect key="frame" x="0.0" y="130" width="260" height="40"/>
+                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="40" id="f8C-Cf-lnV"/>
+                            </constraints>
+                            <fontDescription key="fontDescription" name="OpenSans-Regular" family="Open Sans" pointSize="16"/>
+                            <state key="normal" title="Close">
+                                <color key="titleColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                            </state>
+                            <connections>
+                                <action selector="pressedBlockBtn:" destination="iN0-l3-epB" eventType="touchUpInside" id="Id2-rc-btv"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" red="0.97911663739209243" green="0.97911663739209243" blue="0.97911663739209243" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="bottom" secondItem="QCj-fb-ZQX" secondAttribute="bottom" constant="1" id="0Go-Dy-cQw"/>
+                        <constraint firstItem="QCj-fb-ZQX" firstAttribute="top" secondItem="VVv-gf-3TM" secondAttribute="bottom" constant="-1" id="1hb-xh-jxz"/>
+                        <constraint firstItem="QCj-fb-ZQX" firstAttribute="top" secondItem="NIn-yP-eah" secondAttribute="bottom" constant="2" id="2LB-Vh-NQY"/>
+                        <constraint firstItem="U8M-3Y-1qZ" firstAttribute="top" secondItem="qxb-bt-ebj" secondAttribute="top" id="3kA-Vx-phx"/>
+                        <constraint firstItem="U8M-3Y-1qZ" firstAttribute="leading" secondItem="qxb-bt-ebj" secondAttribute="leading" id="6Kd-e2-sPw"/>
+                        <constraint firstItem="NIn-yP-eah" firstAttribute="leading" secondItem="qxb-bt-ebj" secondAttribute="leading" constant="8" id="A1a-Oa-N6q"/>
+                        <constraint firstAttribute="trailing" secondItem="NIn-yP-eah" secondAttribute="trailing" constant="8" id="DZH-hp-Dz3"/>
+                        <constraint firstItem="NIn-yP-eah" firstAttribute="top" secondItem="a6R-Te-Ohl" secondAttribute="bottom" constant="1" id="EwE-CR-o1F"/>
+                        <constraint firstAttribute="width" priority="999" constant="260" id="F66-tO-UbQ"/>
+                        <constraint firstItem="QCj-fb-ZQX" firstAttribute="leading" secondItem="qxb-bt-ebj" secondAttribute="leading" id="IIc-pv-i2l"/>
+                        <constraint firstItem="a6R-Te-Ohl" firstAttribute="leading" secondItem="qxb-bt-ebj" secondAttribute="leading" id="ItM-zh-TEM"/>
+                        <constraint firstAttribute="trailing" secondItem="a6R-Te-Ohl" secondAttribute="trailing" id="TNo-tR-2o5"/>
+                        <constraint firstAttribute="trailing" secondItem="VVv-gf-3TM" secondAttribute="trailing" id="ZeG-JH-3nS"/>
+                        <constraint firstItem="VVv-gf-3TM" firstAttribute="leading" secondItem="qxb-bt-ebj" secondAttribute="leading" id="f9c-cT-yEv"/>
+                        <constraint firstItem="a6R-Te-Ohl" firstAttribute="top" secondItem="U8M-3Y-1qZ" secondAttribute="bottom" constant="1" id="fE7-IS-wTQ"/>
+                        <constraint firstAttribute="trailing" secondItem="U8M-3Y-1qZ" secondAttribute="trailing" id="hg3-7r-rnm"/>
+                        <constraint firstAttribute="trailing" secondItem="QCj-fb-ZQX" secondAttribute="trailing" id="l7F-5E-IkT"/>
+                        <constraint firstAttribute="height" priority="999" constant="171" id="lTN-7Z-bfu"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="10"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="qxb-bt-ebj" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="EnL-ch-UvP"/>
+                <constraint firstItem="qPZ-DB-0vL" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="ewf-XM-8Pt"/>
+                <constraint firstAttribute="bottom" secondItem="qPZ-DB-0vL" secondAttribute="bottom" id="hKK-Xr-Lm9"/>
+                <constraint firstItem="qPZ-DB-0vL" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="kvL-gc-Znl"/>
+                <constraint firstItem="qxb-bt-ebj" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="centerY" constant="1" id="lLp-AD-usV"/>
+                <constraint firstAttribute="trailing" secondItem="qPZ-DB-0vL" secondAttribute="trailing" id="sIG-76-hm3"/>
+            </constraints>
+            <connections>
+                <outlet property="alert_View" destination="qxb-bt-ebj" id="Yi9-oP-KQg"/>
+                <outlet property="bg_View" destination="qPZ-DB-0vL" id="I7U-Dw-SdX"/>
+                <outlet property="txtView" destination="NIn-yP-eah" id="bai-OF-Q8f"/>
+            </connections>
+            <point key="canvasLocation" x="-209.5" y="-38.5"/>
+        </view>
+    </objects>
+</document>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "0"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.ExceptionBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            scope = "0"
+            stopOnStyle = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Community/Controllers/ChatVC/ChatScreenVC.swift"
+            timestampString = "544466268.8315409"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "462"
+            endingLineNumber = "462"
+            landmarkName = "initilizeFirebase()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Community/Controllers/AddRequest/NewPostVC.swift"
+            timestampString = "544690388.228454"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "506"
+            endingLineNumber = "506"
+            landmarkName = "addHelpReqMethod()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "Communiti.NewPostVC.addHelpReqMethod() -&gt; ()"
+                  moduleName = "Communiti"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Volumes/Backup/Hemant/projects/Applications/Community/Community/Community/Controllers/AddRequest/NewPostVC.swift"
+                  timestampString = "544716174.360455"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "506"
+                  endingLineNumber = "506"
+                  offsetFromSymbolStart = "5446">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Any, Swift.Bool) -&gt; () in Communiti.NewPostVC.addHelpReqMethod() -&gt; ()"
+                  moduleName = "Communiti"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Volumes/Backup/Hemant/projects/Applications/Community/Community/Community/Controllers/AddRequest/NewPostVC.swift"
+                  timestampString = "544716174.362427"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "506"
+                  endingLineNumber = "506"
+                  offsetFromSymbolStart = "29">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in closure #1 (Any, Swift.Bool) -&gt; () in Communiti.NewPostVC.addHelpReqMethod() -&gt; ()"
+                  moduleName = "Communiti"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Volumes/Backup/Hemant/projects/Applications/Community/Community/Community/Controllers/AddRequest/NewPostVC.swift"
+                  timestampString = "544716174.364362"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "506"
+                  endingLineNumber = "506"
+                  offsetFromSymbolStart = "36">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 () -&gt; () in closure #1 (Any, Swift.Bool) -&gt; () in Communiti.NewPostVC.addHelpReqMethod() -&gt; ()"
+                  moduleName = "Communiti"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Volumes/Backup/Hemant/projects/Applications/Community/Community/Community/Controllers/AddRequest/NewPostVC.swift"
+                  timestampString = "544716174.366292"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "506"
+                  endingLineNumber = "506"
+                  offsetFromSymbolStart = "23">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 () -&gt; () in closure #1 (Any, Swift.Bool) -&gt; () in Communiti.NewPostVC.addHelpReqMethod() -&gt; ()"
+                  moduleName = "Communiti"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Volumes/Backup/Hemant/projects/Applications/Community/Community/Community/Controllers/AddRequest/NewPostVC.swift"
+                  timestampString = "544716174.368221"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "506"
+                  endingLineNumber = "506"
+                  offsetFromSymbolStart = "4">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Community/Controllers/AddRequest/HelpReq/SelectDateVC.swift"
+            timestampString = "544691981.143193"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "36"
+            endingLineNumber = "36"
+            landmarkName = "viewDidLoad()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Community/Controllers/AddRequest/NewPostVC.swift"
+            timestampString = "544690982.0415061"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "509"
+            endingLineNumber = "509"
+            landmarkName = "addHelpReqMethod()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

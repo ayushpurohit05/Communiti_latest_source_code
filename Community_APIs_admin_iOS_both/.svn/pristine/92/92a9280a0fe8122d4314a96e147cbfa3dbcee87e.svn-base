@@ -1,0 +1,648 @@
+<?php
+class AdminModel extends CI_Model
+{
+    function __construct()
+    {
+        parent::__construct();
+        session_start();
+    }
+
+    //--Function for select single result form db
+    public function singleData($select, $table, $where = Null)
+    {
+        $this->db->select($select);
+        $this->db->from($table);
+        if ($where != Null)
+        {
+            $this->db->where($where);
+        }
+        $query = $this->db->get();
+        if ($query->num_rows() > 0)
+        {
+            return $query->row_array();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //--Function for select multiple result form db
+    public function selectMultipleData($select, $table, $where = Null)
+    {
+        $this->db->select($select);
+        $this->db->from($table);
+        if ($where != Null)
+        {
+            $this->db->where($where);
+        }
+
+        $query = $this->db->get();
+        if ($query->num_rows() > 0)
+        {
+            return $query->result_array();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //--Common insert function
+    public function insertData($data, $table)
+    {
+        $this->db->insert($table,$data);
+        $insertId = $this->db->insert_id();
+
+        if($insertId)
+        {
+            return $insertId;
+        }
+        {
+            return 0;
+        }
+    }
+
+    //--Common update function
+    public function updateData($table, $where, $data)
+    {
+        $this->db->where($where);
+        $this->db->update($table,$data);
+        if($this->db->affected_rows())
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //--Common delete function
+    public function deleteData($table, $where)
+    {
+        $this->db->where($where);
+        $this->db->delete($table);
+
+        if($this->db->affected_rows())
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //api for show Dashboard hive and help count
+    public function help_hive_count($table)
+    {
+        //count of hive
+        $this->db->select('count(*) as helpCount');
+        $this->db->from($table);
+        $this->db->where('pst_cat_id','1');
+        $this->db->where('pst_isDeleted','0');
+        $query1 = $this->db->get();
+
+        //count of help
+        $this->db->select('count(*) as hiveCount');
+        $this->db->from($table);
+        $this->db->where('pst_cat_id','2');
+        $this->db->where('pst_isDeleted','0');
+        $query2 = $this->db->get();
+
+        $array_1 = $query1->result();
+        $array_2 = $query2->result();
+
+        $final_array = array_merge($array_1, $array_2);
+        if ($query1->num_rows() > 0 or $query2->num_rows() > 0)
+        {
+            return $final_array;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+
+    private function generate_unique_number($l = 16)
+    {
+        return substr(md5(uniqid(mt_rand(), true)), 0, $l);
+    }
+
+    public function login($admData)
+    {
+        $this->db->select('*');
+        $this->db->from('comm_admin');
+        $this->db->where('adm_email',$admData['adm_email']);
+        $this->db->where('adm_password',$admData['adm_password']);
+        $query = $this->db->get();
+        if($query->num_rows() == FALSE)
+        {
+            return 0;
+        }
+        else
+        {
+            // session data
+            foreach ($query->result() as $value) {
+
+                $sess_data = array(
+                   'adm_id'         => str_replace('\"', '', $value->adm_id),
+                   'adm_name'       => $value->adm_name,
+                   'adm_email'      => $value->adm_email,
+                   'adm_username'   => $value->adm_username,
+                   'adm_createdate' => $value->adm_createdate
+               );
+               $_SESSION['sess_data'] = $sess_data;
+            }
+            return $_SESSION['sess_data'];
+        }
+    }
+
+    public function getLoggedIn($table, $admData)
+    {
+        $this->db->select('*');
+        $this->db->from($table);
+        $this->db->where('adm_id',$admData['adm_id']);
+        $query = $this->db->get();
+        if($query->num_rows() == FALSE)
+        {
+            return 0;
+        }
+        else
+        {
+            // session data
+            foreach ($query->result() as $value) {
+
+                $sess_data = array(
+                   'adm_id'         => $value->adm_id,
+                   'adm_name'       => $value->adm_name,
+                   'adm_email'      => $value->adm_email,
+                   'adm_username'   => $value->adm_username,
+                   'adm_createdate' => $value->adm_createdate
+               );
+               $_SESSION['sess_data'] = $sess_data;
+
+
+            }
+            return $_SESSION['sess_data'];
+        }
+    }
+
+    public function changeEmail($table, $admData)
+    {
+        //if($this->session->userdata('adm_id')){
+            $this->db->select('*');
+            $this->db->from($table);
+            $this->db->where('adm_email',$admData['adm_email']);
+            $query = $this->db->get();
+            if($query->num_rows() == TRUE)
+            {
+                return '0';
+            }
+            else
+            {
+                $where = array('adm_id' => $admData['adm_id']);
+                $data = array('adm_email' =>$admData['adm_email'],'adm_username' =>$admData['adm_username']);
+                $data = array('adm_updatedate' =>date('Y-m-d'));
+                $this->db->where($where);
+                $this->db->update($table, $data);
+                if($this->db->affected_rows())
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        //}
+    }
+
+    //funtion to get email of user to send password
+     public function ForgotPassword($email)
+     {
+            $this->db->from('comm_admin');
+            $this->db->where('adm_email', $email);
+            $query=$this->db->get();
+            return $query->row_array();
+     }
+
+    public function sendpassword($data)
+    {
+        $email = $data['adm_email'];
+        $query1=$this->db->query("SELECT *  from comm_admin where adm_email = '".$email."' ");
+        $row=$query1->result_array();
+        if ($query1->num_rows()>0)
+        {
+            $passwordplain = "";
+            $passwordplain  = rand(99,99);
+            $newpass['adm_password'] = md5($passwordplain);
+            $this->db->where('adm_email', $email);
+            $this->db->update('comm_admin', $newpass);
+            $mail_message='Dear '.$row[0]['adm_name'].','. "\r\n";
+            $mail_message.='Thanks for contacting regarding to forgot password,<br> Your <b>Password</b> is <b>'.$passwordplain.'</b>'."\r\n";
+            $mail_message.='<br>Please Update your password.';
+            $mail_message.='<br>Thanks & Regards';
+
+            date_default_timezone_set('Etc/UTC');
+
+            require 'PHPMailer/PHPMailerAutoload.php';
+            /*$mail = new PHPMailer();
+            $mail->IsSMTP(); // we are going to use SMTP
+            $mail->SMTPAuth   = true; // enabled SMTP authentication
+            $mail->SMTPSecure = "ssl";  // prefix for secure protocol to connect to the server
+            $mail->Host       = "smtp.gmail.com";      // setting GMail as our SMTP server
+            $mail->Port       = 465;                   // SMTP port to connect to GMail
+            $mail->Username   = "sachin.tambe@aplitetech.com";  // user email address
+            $mail->Password   = "sachin@0727";            // password in GMail
+            $mail->SetFrom('sachin.tambe@aplitetech.com', 'Mail');  //Who is sending
+            $mail->isHTML(true);
+            $mail->Subject    = "Mail Subject";
+            $mail->Body    = $mail_message;
+            $mail->AltBody = $mail_message;
+            $destino = $email; // Who is addressed the email to
+            $mail->AddAddress($destino, "Receiver");
+            if(!$mail->Send()) {
+                return false;
+            } else {
+                return true;
+            }*/
+
+            $mail = new PHPMailer;
+
+            $mail->isSMTP();                            // Set mailer to use SMTP
+            $mail->Host = 'smtp.gmail.com';             // Specify main and backup SMTP servers
+            $mail->SMTPAuth = true;                     // Enable SMTP authentication
+            $mail->Username = 'sachin.tambe@aplitetech.com';          // SMTP username
+            $mail->Password = 'sachin@0727'; // SMTP password
+            $mail->SMTPSecure = 'tls';                  // Enable TLS encryption, `ssl` also accepted
+            $mail->Port = 587;                          // TCP port to connect to
+
+            $mail->setFrom('info@example.com', 'CodexWorld');
+            $mail->addReplyTo($email, 'CodexWorld');
+            $mail->addAddress($email);   // Add a recipient
+            //$mail->addCC('cc@example.com');
+            //$mail->addBCC('bcc@example.com');
+
+            $mail->isHTML(true);  // Set email format to HTML
+
+            $bodyContent = '<h1>How to Send Email using PHP in Localhost by CodexWorld</h1>';
+            $bodyContent .= '<p>This is the HTML email sent from localhost using PHP script by <b>CodexWorld</b></p>';
+
+            $mail->Subject = 'Email from Localhost by CodexWorld';
+            $mail->Body    = $bodyContent;
+
+            if(!$mail->send()) {
+                echo 'Message could not be sent.';
+                echo 'Mailer Error: ' . $mail->ErrorInfo;
+            } else {
+                echo 'Message has been sent';
+            }
+        }
+    }
+
+
+    public function changePassword($table, $admData)
+    {
+        if($admData['adm_id']){
+            $this->db->select('*');
+            $this->db->from($table);
+            $this->db->where('adm_password',$admData['adm_password']);
+            $this->db->where('adm_id',$admData['adm_id']);
+            $query = $this->db->get();
+            //echo $this->db->last_query(); die;
+            if($query->num_rows() == 0)
+            {
+                return '0';
+            }
+            else
+            {
+                $where = array('adm_id' => $admData['adm_id']);
+                $data = array('adm_password' =>$admData['adm_npassword'],'adm_updatedate' =>date('Y-m-d'));
+                $this->db->where($where);
+                $this->db->update($table, $data);
+                //echo $this->db->last_query(); die;
+                if($this->db->affected_rows())
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+    }
+
+
+    //api for show Dashboard hive and help count
+    public function communityProfile($limit,$offset)
+    {
+
+        //query for get users
+        $actionData =array();
+        $this->db->select('usr_id,usr_fname,usr_social_id,usr_email,usr_gender ');
+        $this->db->from('comm_users');
+        $this->db->limit($limit,$offset);
+        $this->db->group_by('usr_email','asc');
+        $userData = $this->db->get()->result_array();
+        if($userData)
+        {
+
+        foreach($userData as $value){
+        $actionData['Profile_Name'] = isset($value['usr_fname'])?$value['usr_fname']:"";
+        $actionData['Profile_Id'] = isset($value['usr_social_id'])?$value['usr_social_id']:"0";
+
+        //query for get Help create and applited
+        $this->db->select("count(comm_posts.pst_cat_id) as Created, count(comm_help.hlp_pst_id) as Applied");
+        $this->db->from('comm_users');
+        $this->db->join('comm_posts','comm_posts.pst_usr_id=comm_users.usr_id','left');
+        $this->db->join('comm_categories','comm_categories.cat_id=comm_posts.pst_cat_id','left');
+
+        $this->db->join('comm_help','comm_help.hlp_pst_id=comm_posts.pst_id','left');
+
+        $this->db->where('comm_categories.cat_id',2);
+        $this->db->where('comm_posts.pst_usr_id',$value['usr_id']);
+        $this->db->group_by('comm_posts.pst_cat_id');
+        $createHelp1 = $this->db->get();
+        $createHelp = $createHelp1->result_array();
+        if($createHelp)
+        {
+            $actionData['HelpCreated'] = isset($createHelp[0]['Created'])?$createHelp[0]['Created']:"0";
+            $actionData['HelpApplied'] = isset($createHelp[0]['Applied'])?$createHelp[0]['Applied']:"0";
+        }
+        else {
+            $actionData['Help'] =  0;
+        }
+
+
+        //query for get Hive created
+        $this->db->select("count(comm_posts.pst_cat_id) as Created
+        "); //,count(comm_answers.and_pst_id) as Commented
+        $this->db->from('comm_users');
+        $this->db->join('comm_posts','comm_posts.pst_usr_id=comm_users.usr_id','inner');
+        $this->db->join('comm_categories','comm_categories.cat_id=comm_posts.pst_cat_id');
+
+        $this->db->where('comm_categories.cat_id',1);
+        $this->db->where('comm_posts.pst_usr_id',$value['usr_id']);
+        $createHivecreate = $this->db->get()->result_array();
+
+
+        //query for get Hive Commented
+        $this->db->select("count(comm_answers.and_pst_id) as Commented
+        ");
+        $this->db->from('comm_users');
+        $this->db->join('comm_posts','comm_posts.pst_usr_id=comm_users.usr_id','inner');
+        $this->db->join('comm_categories','comm_categories.cat_id=comm_posts.pst_cat_id');
+
+        $this->db->join('comm_answers','comm_answers.and_pst_id=comm_posts.pst_id','left');
+
+        $this->db->where('comm_categories.cat_id',1);
+        $this->db->where('comm_answers.ans_usr_id',$value['usr_id']);
+        $createHivecomment = $this->db->get()->result_array();
+        //echo $this->db->last_query();
+        $hive = array_merge($createHivecreate[0],$createHivecomment[0]);
+
+        if($hive)
+        {
+           $actionData['HiveCreated'] = isset($hive['Created'])?$hive['Created']:"0";
+           $actionData['HiveCommented'] = isset($hive['Commented'])?$hive['Commented']:"0";
+        }
+        else {
+            $actionData['Hive'] =  0;
+        }
+
+
+        //query for get Great Answers create and applited
+        $this->db->select("count(comm_answers.ans_id) as Given, count(comm_greatanswer.gta_id) as Recived");
+        $this->db->from('comm_users');
+        $this->db->join('comm_answers','comm_answers.ans_usr_id=comm_users.usr_id','left');
+
+        $this->db->join('comm_greatanswer','comm_greatanswer.gta_ans_id=comm_answers.ans_id','left');
+        $this->db->where('comm_answers.ans_usr_id',$value['usr_id']);
+        $createanswer = $this->db->get()->result_array();
+
+
+        if($createanswer)
+        {
+            $actionData['GreatAnswerGiven'] = isset($createanswer[0]['Given'])?$createanswer[0]['Given']:"0";
+            $actionData['GreatAnswerRecived'] = isset($createanswer[0]['Recived'])?$createanswer[0]['Recived']:"0";
+        }
+        else {
+            $actionData['GreatAnswer'] =  0;
+        }
+
+        //query for get Karma Points Count
+        $this->db->select("count(comm_posts.pst_scat_id) * comm_points_master.pma_points as Count");
+        $this->db->from('comm_help');
+        $this->db->join('comm_posts','comm_posts.pst_id=comm_help.hlp_pst_id','left');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="COMPLETED_HELP"','left');
+        $this->db->where('comm_help.hlp_usr_id_frm',$value['usr_id']);
+        $this->db->where('comm_help.hlp_completed','Yes');
+        $this->db->group_by('comm_posts.pst_scat_id');
+        $completedHelp = $this->db->get()->result_array();
+
+        $this->db->select("count(comm_posts.pst_scat_id)*comm_points_master.pma_points as Count");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="CREATE_HELP"','left');
+        $this->db->where('pst_usr_id',$value['usr_id']);
+        $this->db->group_by('comm_posts.pst_scat_id');
+        $createdHelp = $this->db->get()->result_array();
+
+        $sql1 = "SELECT count(comm_upvote.upv_pst_ans_id)*comm_points_master.pma_points as Count
+                FROM comm_upvote
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'POST_UPVOTE'
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_upvote.upv_pst_ans_id
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_posts.pst_id
+                FROM comm_posts)
+                AND comm_upvote.upv_type = 'Post'
+                GROUP by (upv_pst_ans_id)";
+        $upvoteHiveCount = $this->db->query($sql1)->result_array();
+
+        $sql2 = "SELECT count(comm_upvote.upv_pst_ans_id)*comm_points_master.pma_points as Count
+                FROM comm_upvote
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'ANSWER_UPVOTE'
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_upvote.upv_pst_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_upvote.upv_pst_ans_id
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers)
+                AND comm_upvote.upv_type = 'Answer'
+                GROUP by (comm_upvote.upv_pst_ans_id)";
+        $ansUpvoteCount = $this->db->query($sql2)->result_array();
+
+
+         $sql3 = "SELECT count(comm_greatanswer.gta_ans_id)*comm_points_master.pma_points as Count
+                FROM comm_greatanswer
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'GREAT_ANSWER'
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_greatanswer.gta_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_answers.and_pst_id
+                WHERE comm_greatanswer.gta_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers)
+                GROUP BY(comm_greatanswer.gta_ans_id)";
+        $greatAnsCount = $this->db->query($sql3)->result_array();
+
+        $newCatArray = array_merge($upvoteHiveCount,$ansUpvoteCount);
+
+        $newCatArray1 = array_merge($newCatArray,$greatAnsCount);
+
+        $newCatArray2 = array_merge($completedHelp,$createdHelp);
+
+        $newCatArray3 = array_merge($newCatArray2,$newCatArray1);
+
+        $sumArray = array();
+
+        foreach ($newCatArray3 as $k=>$subArray) {
+          foreach ($subArray as $id=>$value) {
+            if(!isset($sumArray[$id])){
+                $sumArray[$id] = 0;
+            }
+            $sumArray[$id] += $value;
+          }
+        }
+
+        if($sumArray)
+        {
+            $actionData['Karma_Points'] = isset($sumArray['Count'])?$sumArray['Count']:"0";
+        }
+        else {
+            $actionData['Karma_Points'] =  0;
+        }
+
+
+        //query for get Flags
+        $this->db->select("count(comm_answers.ans_id) as Given, count(comm_greatanswer.gta_id) as Recived");
+        $this->db->from('comm_users');
+        $this->db->join('comm_answers','comm_answers.ans_usr_id=comm_users.usr_id','left');
+        $this->db->join('comm_greatanswer','comm_greatanswer.gta_ans_id=comm_answers.ans_id','left');
+        $flags = $this->db->get()->result_array();
+        if($flags)
+        {
+            $actionData['FlagNoOfFlagGiven'] = isset($flags[0]['Given'])?$flags[0]['Given']:"0";
+            $actionData['FlagNoOfFlagRecived'] = isset($flags[0]['Recived'])?$flags[0]['Recived']:"0";
+        }
+        else {
+            $actionData['GreatAnswer'] =  0;
+        }
+
+        $actionData['Email'] = isset($value['usr_email'])?$value['usr_email']:"";
+        $actionData['Sex'] = isset($value['usr_gender'])?$value['usr_gender']:"";
+        $actionData['LocationfromFB'] = isset($value['usr_location'])?$value['usr_location']:"";
+        $actionData['CommunitiCity'] = isset($value['usr_city'])?$value['usr_city']:"";
+        $actionData['DateTimeofaccountcreation'] = isset($value['usr_createdate'])?$value['usr_createdate']:"0";
+        $actionData['DateTimeoflastlogin'] = isset($value['usr_updatedate'])?$value['usr_updatedate']:"0";
+
+            //echo "<pre>"; print_r($actionData);
+            $actionData_count[] = $actionData;
+        }
+
+         }
+         else {
+             $actionData['userData'] =  0;
+         }
+
+        //echo "<pre>"; print_r($actionData);
+        //$array_fial = array();
+            //$array_final = $actionData;
+        return array_values($actionData_count);
+    }
+
+
+    function countRows()
+    {
+        $query="select count(usr_id) as count from comm_users where usr_email !=''
+";
+        $result=$this->db->query($query);
+        return $result->result_array();
+    }
+
+
+    public function getUserslist($table)
+    {
+        $actionData =array();
+        //$this->db->from($table);
+        $this->db->select("usr_id,usr_fname,usr_lname,usr_email,usr_gender,usr_dob,usr_fb_location,usr_social_id,usr_social_name,usr_createddate,CASE WHEN usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',usr_image)  ELSE usr_image END as profile_image");
+        $this->db->from($table);
+        $this->db->order_by('usr_id','asc');
+        $query = $this->db->get();
+        if($query->num_rows() == FALSE)
+        {
+            return 0;
+        }
+        else
+        {
+            // session data
+
+            foreach ($query->result_array() as $value) {
+
+                $sess_data = array(
+                   'usr_id'           => $value['usr_id'],
+                   'usr_fname'        => $value['usr_fname'],
+                   'usr_lname'        => $value['usr_lname'],
+                   'usr_email'        => $value['usr_email'],
+                   'usr_gender'       => $value['usr_gender'],
+                   'usr_dob'          => $value['usr_dob'],
+                   'profile_image'    => $value['profile_image'],
+                   'usr_fb_location'  => $value['usr_fb_location'],
+                   'usr_social_id'    => $value['usr_social_id'],
+                   'usr_social_name'  => $value['usr_social_name'],
+                   'usr_createddate'   => $value['usr_createddate']
+               );
+            $actionData[]= $sess_data;
+            }
+
+            return array_values($actionData);
+        }
+    }
+
+    function countUsers()
+    {
+        $query="select count(usr_id) as count from comm_users order by usr_id asc";
+        $result=$this->db->query($query);
+        return $result->result_array();
+    }
+
+
+    public function viewUser($table,$usrData)
+    {
+        $this->db->select('*');
+        $this->db->from($table);
+        $this->db->where('usr_id',$usrData['usr_id']);
+        $query = $this->db->get();
+
+        if($query->num_rows() == FALSE)
+        {
+            return 0;
+        }
+        else
+        {
+            // session data
+            foreach ($query->result() as $value) {
+
+                $sess_data = array(
+                   'usr_id'           => $value->usr_id,
+                   'usr_fname'        => $value->usr_fname,
+                   'usr_lname'        => $value->usr_lname,
+                   'usr_email'        => $value->usr_email,
+                   'usr_gender'       => $value->usr_gender,
+                   'usr_dob'          => $value->usr_dob,
+                   //'usr_image'        => $value->usr_image,
+                   'usr_fb_location'  => $value->usr_fb_location,
+                   'usr_social_id'    => $value->usr_social_id,
+                   'usr_social_name'  => $value->usr_social_name,
+                   'usr_createddate'   => $value->usr_createddate
+               );
+
+            }
+            return $sess_data;
+        }
+    }
+
+
+    public function flagAgainstUser()
+    {
+
+    }
+
+}

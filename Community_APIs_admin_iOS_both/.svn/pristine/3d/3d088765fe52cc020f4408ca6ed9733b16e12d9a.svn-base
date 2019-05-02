@@ -1,0 +1,542 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+class AdminController extends CI_Controller
+{
+	public function __construct()
+    {
+        parent::__construct();
+        header("Access-Control-Allow-Headers: Content-Type");
+		header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+		header("Access-Control-Allow-Origin: *");
+
+		//--Load model
+		$this->load->model('AdminModel');
+
+        //--Get input
+		$fileContent = file_get_contents("php://input");
+		if(!empty($fileContent))
+		{
+			$this->requestData = json_decode(file_get_contents("php://input"));
+		}
+		else
+		{
+
+			$this->requestData = (object)$_REQUEST;
+		}
+
+	}
+
+	//--Function for return json encoded data
+    public function getJsonData($arrayResponse)
+    {
+        echo json_encode($arrayResponse);
+    }
+
+
+	//--Function for login
+	public function login()
+	{
+		$arrayResponse = array();
+		try
+		{
+			//--admin param
+
+			$admData['adm_email'] = isset($this->requestData->adm_email)?$this->requestData->adm_email:"";
+			$admData['adm_password'] = isset($this->requestData->adm_password)?$this->requestData->adm_password:"";
+
+			if(empty($admData['adm_email']) && empty($admData['adm_password']))
+			{
+				$arrayResponse = array('success' => false, 'message' =>'UserName and Password required');
+			}
+			else
+			{
+				//--Call model function for login
+				$response = $this->AdminModel->login($admData);
+
+				if ($response)
+				{
+					//$response = json_encode( $response, JSON_NUMERIC_CHECK );
+					$arrayResponse = array('success' => true, 'data' => $response, 'message' =>'Login successfully');
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'Wrong Username and Password.');
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+			}
+		}
+		catch (Exception $e)
+		{
+			$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+		}
+
+		//--Convert Response to json
+		$this->getJsonData($arrayResponse);
+	}
+
+	public function getLoggedIn()
+	{
+		$arrayResponse = array();
+
+		$admData['adm_id'] = isset($this->requestData->adm_id)?$this->requestData->adm_id:"1";
+
+		try
+		{
+			//--Call model function for show help & hive post count
+			$response = $this->AdminModel->getLoggedIn('comm_admin', $admData);
+
+			if($response)
+			{	//$response = json_encode( $response, JSON_NUMERIC_CHECK );
+				$arrayResponse = array('success' => true, 'data' => $response, 'message' => 'Logged In');
+			}
+			else
+			{
+				$arrayResponse = array('success' => false, 'message' => 'No Data Available');
+			}
+
+			if(empty($arrayResponse))
+			{
+				throw new Exception('Oops! Something went wrong please try again.');
+			}
+
+		}
+		catch (Exception $e)
+		{
+			$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+		}
+
+		//--Convert Response to json
+		$this->getJsonData($arrayResponse);
+
+	}
+
+
+	function logout()
+	{
+		$arrayResponse = array();
+		$admData['adm_id'] = isset($this->requestData->adm_id)?$this->requestData->adm_id:"";
+		try
+		{
+
+		if($admData['adm_id'] =='')
+		{
+			$newdata = array(
+					   'adm_id' => '',
+					   'adm_name'  =>'',
+					   'adm_email' => '',
+					   'adm_username' => '',
+					   'adm_createdate' => '',
+					   'logged_in' => FALSE,
+					  );
+			//$this->session->unset_userdata($newdata);
+			//$this->session->sess_destroy();
+	  		$arrayResponse = array('success' => true,'data'=>$newdata ,'message' => 'Logout successfully.');
+		}
+		else
+		{
+		    $arrayResponse = array('success' => false, 'message' => 'User Id Not Set.');
+		}
+
+		if(empty($arrayResponse))
+		{
+			throw new Exception('Oops! Something went wrong please try again.');
+		}
+
+		}
+		catch (Exception $e)
+		{
+			$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+		}
+
+		//--Convert Response to json
+		$this->getJsonData($arrayResponse);
+	}
+
+
+
+	public function changeEmail()
+	{
+		$arrayResponse = array();
+
+		try
+		{
+			$admData['adm_id'] = isset($this->requestData->adm_id)?$this->requestData->adm_id:"";
+			$admData['adm_email'] = isset($this->requestData->adm_email)?$this->requestData->adm_email:"";
+			$admData['adm_username'] = isset($this->requestData->adm_username)?$this->requestData->adm_username:"";
+
+			if(empty($admData['adm_email']))
+			{
+				$arrayResponse = array('success' => false, 'message' =>'Email id is required');
+			}
+			else
+			{
+
+				//--Call model function for email update
+				$response = $this->AdminModel->changeEmail('comm_admin', $admData);
+
+				if ($response != 0)
+				{
+					$arrayResponse = array('success' => true, 'data' => $response, 'message' =>'Email Update successfully');
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'Email Already Exists.');
+				}
+			}
+		}
+		catch (Exception $e)
+		{
+			$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+		}
+
+		//--Convert Response to json
+		$this->getJsonData($arrayResponse);
+	}
+
+
+		function dashboard()
+		{
+			$arrayResponse = array();
+
+			try
+			{
+				//--Call model function for show help & hive post count
+				$help_count = $this->AdminModel->help_hive_count('comm_posts');
+
+				if($help_count)
+				{
+					//$help_count = json_encode( $help_count, JSON_NUMERIC_CHECK );
+					$arrayResponse = array('success' => true, 'data' => $help_count);
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'No Data Available');
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+		}
+
+
+		public function ForgotPassword()
+      	{
+			$arrayResponse = array();
+
+			$admData['adm_email'] = isset($this->requestData->adm_email)?$this->requestData->adm_email:"";
+			//$admData['adm_email'] = isset($_POST['adm_email'])?$_POST['adm_email']:"";
+			try
+			{
+				if(empty($admData['adm_email']))
+				{
+					$arrayResponse = array('success' => false, 'message' => 'Email Field is required');
+				}
+				else
+				{
+					$findemail = $this->AdminModel->ForgotPassword($admData['adm_email']);
+					if($findemail)
+					{
+		             	$this->AdminModel->sendpassword($findemail);
+						$arrayResponse = array('success' => true, 'message' => 'New password send in your Email Id');
+		            }
+					else
+					{
+						$arrayResponse = array('success' => false, 'message' => 'Email Does Not Exists');
+					}
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+
+      	}
+
+
+
+		public function changePassword()
+		{
+			$arrayResponse = array();
+
+			try
+			{
+				$admData['adm_id'] = isset($this->requestData->adm_id)?$this->requestData->adm_id:"";
+				$admData['adm_password'] = isset($this->requestData->adm_password)?$this->requestData->adm_password:"";
+				$admData['adm_npassword'] = isset($this->requestData->adm_npassword)?$this->requestData->adm_npassword:"";
+				$admData['adm_cpassword'] = isset($this->requestData->adm_cpassword)?$this->requestData->adm_cpassword:"";
+
+				if(empty($admData['adm_password']) && empty($admData['adm_npassword']) && empty($admData['adm_cpassword']))
+				{
+					$arrayResponse = array('success' => false, 'message' =>'All Fields is Empty');
+				}
+				elseif(empty($admData['adm_password']) || empty($admData['adm_npassword']) || empty($admData['adm_cpassword']))
+				{
+					$arrayResponse = array('success' => false, 'message' =>'Field is Require.');
+				}
+				elseif($admData['adm_npassword'] != $admData['adm_cpassword'])
+				{
+					$arrayResponse = array('success' => false, 'message' =>'New Password and Confirm Password Not Match.');
+				}
+
+				else
+				{
+					//--Call model function for email update
+					$response = $this->AdminModel->changePassword('comm_admin', $admData);
+
+					if (!empty($response))
+					{
+						$arrayResponse = array('success' => true, 'data' => $response, 'message' =>'Change Password successfully');
+					}
+					else
+					{
+						$arrayResponse = array('success' => false, 'message' => 'Password Does Not Match.');
+					}
+				}
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+		}
+
+
+
+		public function communityProfile($offset=0)
+		{
+			$arrayResponse = array();
+
+			try
+			{
+				//--Call model function for show help & hive post count
+
+				$limit=5;
+				$response['contents'] = $this->AdminModel->communityProfile($limit,$offset);
+				$response['numOfRows']=$this->AdminModel->countRows();
+				//$response['pagination']=$response['numOfRows'][0]['count'];
+
+				if($response)
+				{
+
+					$arrayResponse = array('success' => true, 'data' => $response);
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'No Data Available');
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+		}
+
+
+		public function getUserslist()
+		{
+			$arrayResponse = array();
+
+			try
+			{
+				//--Call model function for show help & hive post count
+				$response['contents'] = $this->AdminModel->getUserslist('comm_users');
+				$response['numOfRows']=$this->AdminModel->countUsers();
+
+				if($response)
+				{
+					$arrayResponse = array('success' => true, 'data' => $response, 'message' => 'Users List');
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'No Data Available');
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+
+		}
+
+
+		public function viewUser()
+		{
+			$arrayResponse = array();
+			$usrData['usr_id'] = isset($this->requestData->usr_id)?$this->requestData->usr_id:"1";
+
+			try
+			{
+				//--Call model function for show help & hive post count
+				$response = $this->AdminModel->viewUser('comm_users',$usrData);
+
+				if($response)
+				{
+					$arrayResponse = array('success' => true, 'data' => $response, 'message' => 'Users record');
+				}
+				else
+				{
+					$arrayResponse = array('success' => false, 'message' => 'No Data Available');
+				}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+
+		}
+
+
+		//--Function for edit comments
+		public function editUser()
+		{
+			$arrayResponse = array();
+
+			try
+			{
+
+					//--Get param
+					$usrData['usr_id'] = isset($this->requestData->usr_id)?$this->requestData->usr_id:"5";
+
+					$usrData['usr_fname'] = isset($this->requestData->usr_fname)?$this->requestData->usr_fname:"";
+					$usrData['usr_lname'] = isset($this->requestData->usr_lname)?$this->requestData->usr_lname:"";
+					$usrData['usr_gender'] = isset($this->requestData->usr_gender)?$this->requestData->usr_gender:"";
+					$usrData['usr_dob'] = isset($this->requestData->usr_dob)?$this->requestData->usr_dob:"";
+					$usrData['usr_app_location'] = isset($this->requestData->usr_app_location)?$this->requestData->usr_app_location:"";
+					$usrData['usr_social_name'] = isset($this->requestData->usr_social_name)?$this->requestData->usr_social_name:"";
+
+					if(empty($usrData['usr_id']))
+					{
+						$arrayResponse = array('success' => false, 'message' => 'User id is required.');
+					}
+					else
+					{
+						//--Call model function for edit User
+						$response = $this->AdminModel->updateData('comm_users',array('usr_id' =>$usrData['usr_id']), $usrData);
+						if ($response)
+						{
+							$arrayResponse = array('success' => true, 'data' => $response, 'message' => 'You have successfully edited Record.');
+						}
+						else
+						{
+							$arrayResponse = array('success' => false, 'message' => 'Oops! Error in updating data, Please try again.');
+						}
+					}
+
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+		}
+
+
+		//--Function for hide comment
+		public function deleteUser()
+		{
+			$arrayResponse = array();
+
+			try
+			{
+					//--Get param
+					$usrData['usr_id'] = isset($this->requestData->usr_id)?$this->requestData->usr_id:"";
+
+					if(empty($usrData['usr_id']))
+					{
+						$arrayResponse = array('success' => false, 'message' => 'User id is required.');
+					}
+					else
+					{
+						//--Call model function for Delete User
+						$response = $this->AdminModel->deleteData('comm_users',array('usr_id' =>$usrData['usr_id']));
+
+						if ($response)
+						{
+							$arrayResponse = array('success' => true, 'data' => $response, 'message' => 'You have successfully deleted Record.');
+						}
+						else
+						{
+							$arrayResponse = array('success' => false, 'message' => 'Oops! Error in deleting data, Please try again.');
+						}
+					}
+				if(empty($arrayResponse))
+				{
+					throw new Exception('Oops! Something went wrong please try again.');
+				}
+			}
+			catch (Exception $e)
+			{
+				$arrayResponse = array('success' => false, 'message' => $e->getMessage());
+			}
+
+			//--Convert Response to json
+			$this->getJsonData($arrayResponse);
+		}
+
+
+
+		public function flagAgainstUser()
+		{
+
+		}
+
+
+}

@@ -1,0 +1,1162 @@
+<?php
+class UserModel extends CI_Model
+{
+    function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function checkToken($token)
+    {
+        $this->db->select('usr_id,usr_fname,usr_isDelete');
+        $this->db->from('comm_users');
+        $this->db->where('usr_token',$token);
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) 
+        {
+            return $query->row_array();
+        } 
+        else 
+        {
+            return 0;
+        }
+    }
+
+    //--Function for select single result form db
+    public function singleData($select, $table, $where = Null)
+    {
+        $this->db->select($select);
+        $this->db->from($table);
+        if ($where != Null) 
+        {
+            $this->db->where($where);
+        }
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) 
+        {
+            return $query->row_array();
+        } 
+        else 
+        {
+            return 0;
+        }
+    }
+
+    //--Function for select multiple result form db
+    public function selectMultipleData($select, $table, $where = Null)
+    {
+        $this->db->select($select);
+        $this->db->from($table);
+        if ($where != Null) 
+        {
+            $this->db->where($where);
+        }
+       
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) 
+        {
+            return $query->result_array();
+        } 
+        else 
+        {
+            return 0;
+        }
+    }
+
+    //--Common insert function
+    public function insertData($data, $table)
+    {
+        $this->db->insert($table,$data);
+        $insertId = $this->db->insert_id();
+
+        if($insertId)
+        {
+            return $insertId;
+        }
+        {
+            return 0;
+        }
+    }
+
+    //--Common update function
+    public function updateData($table, $where, $data)
+    {
+        $this->db->where($where);
+        $this->db->update($table,$data);
+
+        if($this->db->affected_rows())
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //--Common delete function
+    public function deleteData($table, $where)
+    {
+        $this->db->where($where);
+        $this->db->delete($table);
+
+        if($this->db->affected_rows())
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //--Generate token
+    private function generate_unique_number($l = 16)
+    {
+        return substr(md5(uniqid(mt_rand(), true)), 0, $l);
+    }
+
+    public function login($userData,$deviceData)
+    {
+        $token = $this->generate_unique_number();
+        $userData['usr_token'] = $token;
+
+        $select = "usr_id,usr_isDelete,usr_fname,usr_lname,usr_email,usr_gender,CASE WHEN usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',usr_image)  ELSE usr_image END as profile_image,usr_image,usr_img_type,usr_dob,usr_token,usr_createddate,usr_updatedate";
+
+        $where = array('usr_social_id' => $userData['usr_social_id']);
+        $checkSocialId = $this->singleData($select,'comm_users',$where);
+
+        if(empty($checkSocialId))
+        {
+            $this->db->insert('comm_users',$userData);
+
+            $deviceData['dev_usr_id'] = $this->db->insert_id();
+            $deviceData['dev_createdate'] = $userData['usr_createddate'];
+
+            $this->db->insert('comm_devices',$deviceData);
+
+            $where1 = array('usr_id' => $deviceData['dev_usr_id']);
+
+            return $this->singleData($select,'comm_users',$where1);
+        }
+        if ($checkSocialId['usr_isDelete']=='Deactive') 
+        {
+           return $checkSocialId['usr_isDelete'];
+        } 
+        else
+        {
+            $updateToken['usr_token'] = $userData['usr_token'];
+            $updateToken['usr_fb_location'] = $userData['usr_fb_location'];
+            $updateToken['usr_updatedate'] = $userData['usr_createddate'];
+
+            $this->db->where('usr_id',$checkSocialId['usr_id']);
+            $this->db->update('comm_users',$updateToken);
+
+            $deviceData['dev_updatedate'] = $userData['usr_createddate'];
+
+            $this->db->where('dev_usr_id',$checkSocialId['usr_id']);
+            $this->db->where('dev_device_type',$deviceData['dev_device_type']);
+            $this->db->update('comm_devices',$deviceData);
+
+            $checkSocialId['usr_token'] = $userData['usr_token'];
+
+            return $checkSocialId;
+        }
+    }
+
+    public function addUserHive($hiveData,$hiveTags)
+    {
+        $this->db->insert('comm_posts',$hiveData);
+        $postId = $this->db->insert_id();
+
+        if($postId)
+        {
+            if($hiveTags)
+            {  
+                $i=0;
+                foreach ($hiveTags as $tagName) 
+                {
+                    $hashData[$i]['htag_pst_id'] = $postId;
+                    $hashData[$i]['htag_text'] = $tagName;
+                    $hashData[$i]['htag_createdate'] = $hiveData['pst_createdate'];
+                    $i++;           
+                }
+                $this->db->insert_batch('comm_hashtags',$hashData);
+            }
+            
+            return $postId;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function editUserHiveById($pstId,$hiveData,$hiveTags)
+    {
+        $this->db->where('pst_id',$pstId);
+        $this->db->update('comm_posts',$hiveData);
+
+        if($this->db->affected_rows())
+        {
+            $this->db->where('htag_pst_id',$pstId);
+            $this->db->delete('comm_hashtags');
+
+            if($hiveTags)
+            {
+                $i=0;
+                foreach ($hiveTags as $tagName) 
+                {
+                    $hashData['htag_pst_id'] = $pstId;
+                    $hashData['htag_text'] = $tagName;
+                    $hashData['htag_createdate'] = $hiveData['pst_updatedate'];
+
+                    $this->db->insert('comm_hashtags',$hashData); 
+
+                    $tagsDetail[$i]['htag_id'] = $this->db->insert_id();
+                    $tagsDetail[$i]['htag_text'] = $tagName;  
+                $i++;        
+                }
+                $responseData[0]['tags'] = $tagsDetail;
+                return $responseData;
+            }
+            $responseData[0]['tags'] = array();
+
+            return $responseData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function getOrFilterAllHivePost($filterData)
+    {
+        $sql = "SELECT posts.pst_id,posts.pst_title,posts.pst_description,posts.pst_completed,posts.pst_createdate,posts.pst_updatedate, subcategories.scat_title,subcategories.scat_description,users.usr_fname,users.usr_lname,users.usr_id,CASE WHEN upvote.upvote!='' THEN upvote.upvote  ELSE 0 END as upvote_count,CASE WHEN upvote_user.upv_pst_ans_id!='' THEN 'YES'  ELSE 'NO' END as usr_upvote,CASE WHEN users.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',users.usr_image)  ELSE users.usr_image END as profile_image,CASE WHEN comm_report.rpt_id!='' THEN 'YES' ELSE 'NO' end as usr_report,replies as comment
+            FROM comm_posts posts
+            LEFT JOIN comm_subcategories subcategories ON subcategories.scat_id=posts.pst_scat_id
+            LEFT JOIN comm_users users ON users.usr_id=posts.pst_usr_id
+            LEFT JOIN 
+                        ( 
+                             SELECT and_pst_id, COUNT(*) AS replies
+                             FROM comm_answers as answers1
+                             WHERE ans_isDeleted = 0
+                             GROUP BY and_pst_id 
+                        ) as
+                        answers ON posts.pst_id = answers.and_pst_id
+            LEFT JOIN 
+                        ( 
+                             SELECT upv_pst_ans_id, COUNT(*) AS upvote
+                             FROM comm_upvote
+                             WHERE upv_type = 'Post'
+                             GROUP BY upv_pst_ans_id 
+                        )
+                        upvote ON posts.pst_id = upvote.upv_pst_ans_id
+            LEFT JOIN  comm_report ON posts.pst_id = comm_report.rpt_pst_ans_usr_id AND comm_report.rpt_type = 'Post' AND comm_report.rpt_usr_id =".$filterData['usr_id']."
+           LEFT JOIN 
+                       ( 
+                             SELECT upv_pst_ans_id
+                             FROM comm_upvote as upvote_user1
+                             WHERE upv_type = 'Post'
+                             and upv_usr_id = ".$filterData['usr_id']."
+                             GROUP BY upv_pst_ans_id 
+                        )
+                        upvote_user ON posts.pst_id = upvote_user.upv_pst_ans_id 
+                        
+            WHERE posts.pst_isDeleted = 0";
+
+        //--Get single post detail
+        if($filterData['pst_loc_id'])
+        {
+            $sql .= " AND posts.pst_loc_id = ".$filterData['pst_loc_id']."";
+        }
+        //--Get single post detail
+        if($filterData['pst_id'])
+        {
+            $sql .= " AND posts.pst_id = ".$filterData['pst_id']."";
+        }
+        else
+        {
+            $sql .= " AND posts.pst_id NOT IN(SELECT CASE WHEN COUNT(comm_report.rpt_pst_ans_usr_id) >=3 THEN comm_report.rpt_pst_ans_usr_id ELSE 0 end as id FROM comm_posts LEFT JOIN comm_report on comm_report.rpt_pst_ans_usr_id=comm_posts.pst_id AND comm_report.rpt_type = 'POST' WHERE comm_posts.`pst_cat_id`=".$filterData['cat_id']." group by comm_report.rpt_pst_ans_usr_id)";
+
+             $sql .= " AND posts.pst_usr_id NOT IN(select DISTINCT(CASE WHEN id >=3 THEN comm_users.usr_id else 0 end) as users from comm_users left join (SELECT rpt_pst_ans_usr_id,count(*) as id FROM comm_report where rpt_type = 'CHAT' group by rpt_pst_ans_usr_id) report on comm_users.usr_id=report.rpt_pst_ans_usr_id)";
+
+             $sql .= " AND posts.pst_cat_id = ".$filterData['cat_id']."";
+        }
+
+        //--Filter by tag
+        if($filterData['tag'])
+        {
+            //--Multi tag selection
+            foreach ($filterData['tag'] as $tagName) 
+            {
+                $queryData[] = "'%".($tagName)."%'";
+            }
+            $inputstring = implode(' OR htag_text LIKE ', $queryData);
+
+            $sql .= " AND posts.pst_id IN (SELECT DISTINCT htag_pst_id FROM comm_hashtags WHERE  htag_text LIKE {$inputstring})";
+        }
+        
+        //--Filter by category
+        if($filterData['pst_scat_id'])
+        {
+            $sql .= " AND subcategories.scat_id IN ( '" . implode( "', '" ,$filterData['pst_scat_id']) . "' )";
+        }
+
+        //--Filter by activity
+        if($filterData['activity']=='UPVOTE')
+        {
+            $sql .= " ORDER BY upvote_count desc";
+        }
+        else if ($filterData['activity']=='COMMENT') 
+        {
+            $sql .= " ORDER BY comment desc";
+        }
+        else
+        {
+            $sql .= " ORDER BY posts.pst_updatedate desc";
+        }
+
+        if($filterData['limit'])
+        {
+             $sql .=  " LIMIT ".$filterData['start'].",".$filterData['limit'];
+        }
+
+
+        $postData = $this->db->query($sql)->result_array();
+       
+        if($postData)
+        {
+            $i=0;
+            foreach ($postData as $postId) 
+            {
+                //--Get post tags
+                $this->db->select('htag_id,htag_text');
+                $this->db->from('comm_hashtags');
+                $this->db->where('htag_pst_id',$postId['pst_id']);
+                $postData[$i]['tags']= $this->db->get()->result_array();
+
+                $sql2 = "SELECT COUNT(and_pst_id) AS replies
+                         FROM comm_answers
+                         WHERE ans_isDeleted = 0
+                         AND comm_answers.`and_pst_id`=".$postId['pst_id']."
+                         AND ans_id NOT IN(SELECT CASE WHEN COUNT(comm_report.rpt_pst_ans_usr_id)>=3 THEN comm_report.rpt_pst_ans_usr_id ELSE 0 end AS id FROM comm_answers LEFT JOIN comm_report ON comm_report.rpt_pst_ans_usr_id=comm_answers.ans_id AND comm_report.rpt_type = 'ANSWER' WHERE comm_answers.and_pst_id=".$postId['pst_id']." group by comm_report.rpt_pst_ans_usr_id) 
+                         GROUP BY and_pst_id";
+               $replyCount = $this->db->query($sql2)->row_array();
+               $postData[$i]['replies_count'] = isset($replyCount['replies'])?$replyCount['replies']:"0";
+            $i++;
+            }
+            return $postData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+
+    public function addCommentOnPost($postData,$postTitle,$pstUsrId,$LoginUserName,$pstUsrNm)
+    {
+        //--Get post user for notification
+        $this->db->select('DISTINCT(comm_answers.ans_usr_id) AS usr_id,comm_devices.dev_device_token');
+        $this->db->from('comm_answers');
+        $this->db->join('comm_devices','comm_devices.dev_usr_id = comm_answers.ans_usr_id','left');
+        $this->db->join('comm_users','comm_users.usr_id = comm_devices.dev_usr_id','left');
+        $this->db->where('comm_answers.and_pst_id',$postData['and_pst_id']);
+        $this->db->where('comm_answers.ans_usr_id!=',$pstUsrId);
+        $this->db->where('comm_answers.ans_usr_id!=',$postData['ans_usr_id']);
+        $this->db->where('comm_users.usr_isDelete',0);
+        $postedUserData = $this->db->get()->result_array();
+
+        //--Insert comment on post
+        $response = $this->insertData($postData,'comm_answers');
+
+        if($response)
+        {
+            if(strlen($postTitle)>60)
+            {
+                $message = substr($postTitle, 0, 57).'...';
+            }
+            else
+            {
+                $message = $postTitle;
+            }
+
+            $pushMessage = 'People are commenting on a discussion you participated in';
+
+            $notData['ntfy_from'] = $postData['ans_usr_id'];
+            $notData['ntfy_pst_id'] = $postData['and_pst_id'];
+            $notData['ntfy_message'] = $message;
+            $notData['ntfy_type'] ='HIVE_COMMENT';
+            $notData['ntfy_pst_type'] ='HIVE';
+            $notData['ntfy_createdate'] = $postData['ans_createdate'];
+            
+            //--msg for notification
+            $notifyMessage['ntfy_message'] = $pushMessage;
+            $notifyMessage['ntfy_pst_type'] ='HIVE';
+
+            if($postedUserData)
+            {
+                //-- send notification
+                foreach ($postedUserData as $userData) 
+                {
+                    //-call function for send notification
+                    $this->sendNotification($userData['dev_device_token'],$notifyMessage);
+
+                    $notData['ntfy_to'] = $userData['usr_id'];
+                    $this->db->insert('comm_notification', $notData);
+                }
+            }
+
+            if($postData['ans_usr_id']!=$pstUsrId)
+            {
+                $userDeviceData = $this->singleData('dev_device_token','comm_devices',array('dev_usr_id' =>$pstUsrId));
+                $this->sendNotification($userDeviceData['dev_device_token'], $notifyMessage);
+                $notData['ntfy_to'] = $pstUsrId;
+                $this->db->insert('comm_notification', $notData);
+            }
+
+           return $response;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function getAllPostComments($pstId,$usrId,$filterData)
+    {
+        $sql = "SELECT CASE WHEN user_tbl.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',user_tbl.usr_image)  ELSE user_tbl.usr_image END as profile_image ,user_tbl.usr_id,answers.ans_updatedate,answers.ans_id,answers.ans_description,answers.ans_createdate,CASE WHEN greatanswer.gta_ans_id!='' THEN 'YES'  ELSE 'NO' END as great,CASE WHEN upvote.upvote_count!='' THEN upvote.upvote_count  ELSE '0' END as count_upvote, CASE WHEN usrupvote.upv_id!='' THEN 'YES'  ELSE 'NO' END as user_upvote,CASE WHEN comm_report.rpt_id!='' THEN 'YES' ELSE 'NO' end as usr_report
+                        FROM comm_answers answers
+                        LEFT JOIN comm_users user_tbl ON answers.ans_usr_id = user_tbl.usr_id 
+                        LEFT JOIN comm_upvote usrupvote ON answers.ans_id = usrupvote.upv_pst_ans_id AND usrupvote.upv_type = 'Answer' AND usrupvote.upv_usr_id=".$usrId."
+                        LEFT JOIN comm_greatanswer greatanswer ON answers.ans_id = greatanswer.gta_ans_id
+                        LEFT JOIN 
+                        ( 
+                             SELECT upv_pst_ans_id, COUNT(*) AS upvote_count 
+                             FROM comm_upvote
+                             WHERE upv_type = 'Answer'
+                             GROUP BY upv_pst_ans_id 
+                        )
+                        upvote ON answers.ans_id = upvote.upv_pst_ans_id
+                        LEFT JOIN  comm_report ON answers.ans_id = comm_report.rpt_pst_ans_usr_id AND comm_report.rpt_type = 'Answer' AND comm_report.rpt_usr_id =".$usrId."
+
+                        WHERE answers.and_pst_id = ".$pstId." AND answers.ans_isDeleted = 0
+
+                        AND answers.ans_id NOT IN(SELECT CASE WHEN COUNT(comm_report.rpt_pst_ans_usr_id)>=3 THEN comm_report.rpt_pst_ans_usr_id ELSE 0 end AS id FROM comm_answers LEFT JOIN comm_report ON comm_report.rpt_pst_ans_usr_id=comm_answers.ans_id AND comm_report.rpt_type = 'ANSWER' WHERE comm_answers.`and_pst_id`=".$pstId." group by comm_report.rpt_pst_ans_usr_id)
+
+                     ORDER BY answers.ans_createdate ASC LIMIT ".$filterData['start'].",".$filterData['limit'];
+
+        $replyData = $this->db->query($sql)->result_array();
+
+        if($replyData)
+        {
+            return $replyData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function addUserHelpRequest($helpData,$helpTags,$helpDetailData)
+    {
+        $this->db->insert('comm_posts',$helpData);
+        $postId = $this->db->insert_id();
+
+        if($postId)
+        {
+            if($helpTags)
+            {   
+                $i=0;
+                foreach ($helpTags as $tagName) 
+                {
+                    $hashData[$i]['htag_pst_id'] = $postId;
+                    $hashData[$i]['htag_text'] = $tagName;
+                    $hashData[$i]['htag_createdate'] = $helpData['pst_createdate'];
+                $i++;
+                }
+                $this->db->insert_batch('comm_hashtags',$hashData);
+            }
+            if($helpDetailData)
+            {
+                $helpDetailData['pext_pst_id'] = $postId;
+                $helpDetailData['pext_createdate'] = $helpData['pst_createdate'];
+
+                $this->db->insert('comm_posts_extended',$helpDetailData);  
+            }
+            return $postId;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function editUserHelpRequest($pstId,$helpData,$helpTags,$helpDetailData)
+    {
+        $this->db->where('pst_id',$pstId);
+        $this->db->update('comm_posts',$helpData);
+
+        $this->db->where('pext_pst_id',$pstId);
+        $this->db->update('comm_posts_extended',$helpDetailData);
+
+        if($this->db->affected_rows())
+        {
+            $this->db->where('htag_pst_id',$pstId);
+            $this->db->delete('comm_hashtags');
+
+            if($helpTags)
+            {
+                $i=0;
+                foreach ($helpTags as $tagName) 
+                {
+                    $hashData['htag_pst_id'] = $pstId;
+                    $hashData['htag_text'] = $tagName;
+                    $hashData['htag_createdate'] = $helpData['pst_updatedate'];
+
+                    $this->db->insert('comm_hashtags',$hashData); 
+                    $tagsDetail[$i]['htag_id'] = $this->db->insert_id();
+                    $tagsDetail[$i]['htag_text'] = $tagName;  
+                $i++;        
+                }
+                $responseData[0]['tags'] = $tagsDetail;
+                return $responseData;
+            }
+            $responseData[0]['tags'] = array();
+
+            return $responseData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    
+    public function getAllHelpRequestedUser($pstId,$usrId)
+    {
+        $this->db->select("comm_help.hlp_id,comm_help.hlp_completed,comm_users.usr_id,comm_users.usr_fname,CASE WHEN comm_users.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',comm_users.usr_image)  ELSE comm_users.usr_image END as profile_image");
+        $this->db->from('comm_help');
+        $this->db->join('comm_users','comm_users.usr_id=comm_help.hlp_usr_id_frm','left');
+        $this->db->where('comm_help.hlp_pst_id',$pstId);
+        $this->db->where('comm_help.hlp_usr_id_to',$usrId);
+        $postData = $this->db->get()->result_array();
+
+        if($postData)
+        {
+            return $postData;
+        }
+        else
+        {
+            return "0";
+        }
+    }
+   
+    public function getOrFilterAllHelpRequest($filterData)
+    {
+        $tags_data = array();
+
+        $this->db->select("comm_users.usr_id,CASE WHEN comm_users.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',comm_users.usr_image)  ELSE comm_users.usr_image END as profile_image,comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_description,comm_posts.pst_completed,comm_posts.pst_createdate,comm_posts.pst_updatedate, comm_subcategories.scat_title,comm_subcategories.scat_description,CASE WHEN comm_subcategories.scat_icon!='' THEN CONCAT('".SUB_CATEGORY_IMAGE."',comm_subcategories.scat_icon)  ELSE comm_subcategories.scat_icon END as subCat_icon,comm_posts_extended.pext_type,comm_posts_extended.pext_location,comm_posts_extended.pext_date,comm_posts_extended.pext_lat,comm_posts_extended.pext_long,CASE WHEN comm_help.hlp_id!='' THEN 'YES'  ELSE 'NO' END as usr_request");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_posts_extended','comm_posts_extended.pext_pst_id=comm_posts.pst_id','left');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+        $this->db->join('comm_help','comm_help.hlp_pst_id=comm_posts.pst_id AND comm_help.hlp_usr_id_frm='.$filterData['usr_id'].'','left');
+        $this->db->join('comm_users','comm_users.usr_id=comm_posts.pst_usr_id','left');
+        $this->db->where('comm_posts.pst_cat_id',$filterData['cat_id']);
+        $this->db->where('comm_posts.pst_isDeleted',0);
+        $this->db->where("comm_posts.pst_usr_id NOT IN(select DISTINCT(CASE WHEN id >=3 THEN comm_users.usr_id else 0 end) as users from comm_users left join (SELECT rpt_pst_ans_usr_id,count(*) as id FROM comm_report where rpt_type = 'CHAT' group by rpt_pst_ans_usr_id) report on comm_users.usr_id=report.rpt_pst_ans_usr_id)");
+        $this->db->where("comm_posts.pst_id NOT IN(select DISTINCT(CASE WHEN id >=3 THEN comm_posts.pst_id else 0 end) as users from comm_posts left join (SELECT rpt_pst_ans_usr_id,count(*) as id FROM comm_report where rpt_type = 'POST' group by rpt_pst_ans_usr_id) report on comm_posts.pst_id=report.rpt_pst_ans_usr_id where comm_posts.pst_cat_id=".$filterData['cat_id'].")");
+        
+        if($filterData['pst_loc_id'])
+        {
+            $this->db->where('comm_posts.pst_loc_id',$filterData['pst_loc_id']);
+        }
+        //--where condition for filter
+        if($filterData['pst_scat_id'])
+        {
+            $this->db->where_in('comm_subcategories.scat_id',$filterData['pst_scat_id']);
+        }
+
+        if($filterData['pext_type'])
+        {
+            $this->db->where('comm_posts_extended.pext_type',$filterData['pext_type']);
+        }
+
+        if($filterData['tag'])
+        {
+            //--Multi tag selection
+            foreach ($filterData['tag'] as $tagName) 
+            {
+                $queryData[] = "'%".($tagName)."%'";
+            }
+            $inputstring = implode(' OR htag_text LIKE ', $queryData);
+
+            $this->db->where("comm_posts.pst_id IN (SELECT DISTINCT htag_pst_id FROM comm_hashtags WHERE  htag_text LIKE {$inputstring})");
+        }
+
+        $this->db->limit($filterData['limit'],$filterData['start']);
+        $this->db->order_by('comm_posts.pst_updatedate','desc');
+
+        $postData = $this->db->get()->result_array();
+
+        if($postData)
+        {
+            $i=0;
+            foreach ($postData as $postId) 
+            {
+                //--Get post tags
+                $this->db->select('htag_id,htag_text');
+                $this->db->from('comm_hashtags');
+                $this->db->where('htag_pst_id',$postId['pst_id']);
+                $postData[$i]['tags']= $this->db->get()->result_array();
+
+            $i++;
+            }
+            return $postData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function getHelpRequestById($pstData)
+    {
+        $tags_data = array();
+
+        $this->db->select("comm_users.usr_fname,comm_users.usr_lname,comm_users.usr_id,comm_posts.pst_id,CASE WHEN comm_users.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',comm_users.usr_image)  ELSE comm_users.usr_image END as profile_image,comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_description,comm_posts.pst_completed,comm_posts.pst_createdate,comm_posts.pst_updatedate, comm_subcategories.scat_title,comm_subcategories.scat_description,comm_posts_extended.pext_type,comm_posts_extended.pext_location,comm_posts_extended.pext_date,comm_posts_extended.pext_lat,comm_posts_extended.pext_long,CASE WHEN comm_help.hlp_id!='' THEN 'YES'  ELSE 'NO' END as usr_request,CASE WHEN comm_report.rpt_id!='' THEN 'YES' ELSE 'NO' end as usr_report");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_help','comm_help.hlp_pst_id=comm_posts.pst_id AND comm_help.hlp_usr_id_frm = '.$pstData['usr_id'].'','left');
+        $this->db->join('comm_posts_extended','comm_posts_extended.pext_pst_id=comm_posts.pst_id','left');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+        $this->db->join('comm_users','comm_users.usr_id=comm_posts.pst_usr_id','left');
+        $this->db->join("comm_report","comm_posts.pst_id = comm_report.rpt_pst_ans_usr_id AND comm_report.rpt_type = 'Post' AND comm_report.rpt_usr_id =".$pstData['usr_id']."",'left');
+        $this->db->where('comm_posts.pst_id',$pstData['pst_id']);
+        $this->db->where('comm_posts.pst_isDeleted',0);
+        $this->db->where('comm_posts.pst_loc_id',$pstData['pst_loc_id']);
+        $postData = $this->db->get()->result_array();
+
+        if($postData)
+        {
+            //--Get post tags
+            $this->db->select('htag_id,htag_text');
+            $this->db->from('comm_hashtags');
+            $this->db->where('htag_pst_id',$pstData['pst_id']);
+            $postData[0]['tags'] = $this->db->get()->result_array();
+            $postData[0]['help_usrs'] = $this->getAllHelpRequestedUser($pstData['pst_id'],$pstData['usr_id']);
+
+            return $postData;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function endHelpRequest($endData)
+    {
+        $dataUpdate['hlp_completed'] = 'Yes';
+        $dataUpdate['hlp_updatedate'] = $endData['hlp_updatedate'];
+
+        //--update help detail
+        $this->db->where_in('hlp_usr_id_frm',$endData['hlp_usr_id_frm']);
+        $this->db->where('hlp_pst_id',$endData['hlp_pst_id']);
+        $this->db->where('hlp_usr_id_to',$endData['hlp_usr_id_to']);
+        $query = $this->db->update('comm_help',$dataUpdate); 
+
+        //--update post detail
+        $this->db->set('pst_completed', $dataUpdate['hlp_completed']);
+        $this->db->set('pst_updatedate', $dataUpdate['hlp_updatedate']);
+        $this->db->where('pst_id',$endData['hlp_pst_id']);
+        $query = $this->db->update('comm_posts'); 
+
+        if($query)
+        {
+            return  1;
+        }
+        else
+        {
+            return  0;
+        }
+      
+    }
+
+    public function getKarmaPointActionData($usrId,$count,$helpId)
+    {
+        $this->db->select("COUNT(*) * comm_points_master.pma_points as help_count");
+        $this->db->from('comm_help');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="COMPLETED_HELP"','left');
+        $this->db->where('hlp_usr_id_frm',$usrId);
+        $this->db->where('hlp_completed','Yes');
+        $completed = $this->db->get()->row_array();
+        $actionData['successfully_completed_help_request'] = isset($completed['help_count'])?$completed['help_count']:"0";
+
+        $this->db->select("COUNT(*) * comm_points_master.pma_points as post_count");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="CREATE_HELP"','left');
+        $this->db->where('pst_usr_id',$usrId);
+        $this->db->where('pst_cat_id',$helpId);
+        $this->db->where('comm_posts.pst_id IN (select hlp_pst_id from comm_help where hlp_usr_id_to='.$usrId.' AND hlp_completed ="Yes" AND hlp_pst_id IN (select pst_id from comm_posts where pst_usr_id='.$usrId.' AND pst_cat_id ='.$helpId.'))');
+        $this->db->where('comm_posts.pst_completed','Yes');
+        $created = $this->db->get()->row_array();
+        $actionData['successfully_created_help_request'] = isset($created['post_count'])?$created['post_count']:"0";
+
+        //CAST(COUNT(*)/5 as UNSIGNED)
+
+        $sql = "SELECT sum(karma.count) as points
+                FROM
+                (
+                    SELECT COUNT(*) * comm_points_master.pma_points as count
+                    FROM comm_greatanswer
+                    LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode ='GREAT_ANSWER'
+                    WHERE comm_greatanswer.gta_ans_id IN (select ans_id from comm_answers where ans_usr_id=".$usrId.")
+                UNION all
+                    SELECT COUNT(*) DIV 5* comm_points_master.pma_points as ans_upvote_count
+                    FROM comm_upvote
+                    LEFT JOIN comm_answers ON comm_answers.ans_id=comm_upvote.upv_pst_ans_id
+                    LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode ='ANSWER_UPVOTE'
+                    WHERE comm_upvote.upv_pst_ans_id IN (select ans_id from comm_answers where ans_usr_id=".$usrId.")
+                    AND upv_type = 'Answer'
+                    AND comm_answers.ans_usr_id = ".$usrId."
+                UNION all
+                    SELECT COUNT(*) DIV 5* comm_points_master.pma_points as pst_upvote_count
+                    FROM comm_upvote as tbl_upvote
+                    LEFT JOIN comm_posts ON comm_posts.pst_id=tbl_upvote.upv_pst_ans_id
+                    LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode='POST_UPVOTE'
+                    WHERE tbl_upvote.upv_pst_ans_id IN (select pst_id from comm_posts where pst_usr_id=".$usrId." and pst_id in(select pst_id from comm_posts where pst_usr_id=".$usrId."))
+                    AND upv_type = 'Post'
+                    AND comm_posts.pst_usr_id = ".$usrId."
+                ) as karma";
+
+        $hivePoint = $this->db->query($sql)->row_array();
+        $actionData['helpful_hive_contribution'] = isset($hivePoint['points'])?$hivePoint['points']:"0";
+        $signUp = $this->singleData('pma_points','comm_points_master',array('pma_shortcode' =>'SIGN_UP'));
+        $actionData['sign_up'] = isset($signUp['pma_points'])?$signUp['pma_points']:"0";
+
+        if(empty($count))
+        {
+            return $actionData;
+        }
+        else
+        {
+            return (string)$total_count = $actionData['successfully_completed_help_request']+$actionData['successfully_created_help_request']+$actionData['helpful_hive_contribution']+$actionData['sign_up'];
+        }
+    }
+
+    public function getCategoryWithKarmaPoint($usrId,$catData)
+    {
+        $this->db->select("count(comm_posts.pst_scat_id) * comm_points_master.pma_points as Count,comm_subcategories.scat_title as cat");
+        $this->db->from('comm_help');
+        $this->db->join('comm_posts','comm_posts.pst_id=comm_help.hlp_pst_id','left');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="COMPLETED_HELP"','left');
+        $this->db->where('comm_help.hlp_usr_id_frm',$usrId);
+        $this->db->where('comm_help.hlp_completed','Yes');
+        $this->db->group_by('comm_posts.pst_scat_id');
+        $completedHelp = $this->db->get()->result_array();
+
+        $this->db->select("count(comm_posts.pst_scat_id)*comm_points_master.pma_points as Count,comm_subcategories.scat_title as cat");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+        $this->db->join('comm_points_master','comm_points_master.pma_shortcode="CREATE_HELP"','left');
+        $this->db->where('pst_usr_id',$usrId);
+        $this->db->where('pst_cat_id',$catData['help_id']);
+        $this->db->where('comm_posts.pst_id IN (select hlp_pst_id from comm_help where hlp_usr_id_to='.$usrId.' AND hlp_completed ="Yes" AND hlp_pst_id IN (select pst_id from comm_posts where pst_usr_id='.$usrId.' AND pst_cat_id ='.$catData['help_id'].'))');
+        $this->db->where('comm_posts.pst_completed','Yes');
+        $this->db->group_by('comm_posts.pst_scat_id');
+        $createdHelp = $this->db->get()->result_array();
+        $sql1 = "SELECT count(comm_upvote.upv_pst_ans_id) DIV 5*comm_points_master.pma_points as Count,comm_subcategories.scat_title as cat
+                FROM comm_upvote
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'POST_UPVOTE'
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_upvote.upv_pst_ans_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id=comm_posts.pst_scat_id
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_posts.pst_id
+                FROM comm_posts
+                WHERE pst_usr_id = ".$usrId."
+                AND pst_cat_id = ".$catData['hive_id'].")
+                AND comm_upvote.upv_type = 'Post'
+                AND comm_posts.pst_usr_id = ".$usrId."
+                GROUP by (upv_pst_ans_id)";
+
+        $upvoteHiveCount = $this->db->query($sql1)->result_array();
+
+        $sql2 = "SELECT count(comm_upvote.upv_pst_ans_id) DIV 5*comm_points_master.pma_points as Count, comm_subcategories.scat_title as cat
+                FROM comm_upvote
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'ANSWER_UPVOTE'
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_upvote.upv_pst_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_answers.and_pst_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id=comm_posts.pst_scat_id
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers
+                WHERE ans_usr_id = ".$usrId.")
+                AND comm_upvote.upv_type = 'Answer'
+                AND comm_answers.ans_usr_id = ".$usrId."
+                GROUP by (comm_upvote.upv_pst_ans_id)";
+
+        $ansUpvoteCount = $this->db->query($sql2)->result_array();
+
+        $sql3 = "SELECT count(comm_greatanswer.gta_ans_id)*comm_points_master.pma_points as Count,comm_subcategories.scat_title as cat
+                FROM comm_greatanswer
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'GREAT_ANSWER'
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_greatanswer.gta_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_answers.and_pst_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id=comm_posts.pst_scat_id
+                WHERE comm_greatanswer.gta_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers
+                WHERE ans_usr_id = ".$usrId.")
+                GROUP BY(comm_greatanswer.gta_ans_id)";
+
+        $greatAnsCount = $this->db->query($sql3)->result_array();
+
+        $newCatArray = array_merge($upvoteHiveCount,$ansUpvoteCount);
+
+        $newCatArray1 = array_merge($newCatArray,$greatAnsCount);
+
+        $newCatArray2 = array_merge($completedHelp,$createdHelp);
+
+        $newCatArray3 = array_merge($newCatArray2,$newCatArray1);
+
+        foreach($newCatArray3 as $subKey => $subArray)
+        {
+            if($subArray['Count'] == 0)
+            {
+                unset($newCatArray3[$subKey]);
+            }
+        }
+
+        $result = array();
+        foreach (array_values($newCatArray3) as $item) 
+        {
+            if (!isset($result[$item['cat']])) 
+            {
+                $result[$item['cat']] = $item;
+            }
+            else 
+            {
+                $result[$item['cat']]['Count'] += $item['Count'];
+                $result[$item['cat']]['Count'] = (string)$result[$item['cat']]['Count'];
+            }
+        }
+
+        $signUp = $this->singleData('pma_points','comm_points_master',array('pma_shortcode' =>'SIGN_UP'));
+        $signUpData[0]['Count'] = isset($signUp['pma_points'])?$signUp['pma_points']:"0";
+        $signUpData[0]['cat'] = 'Sign up';
+        $categoryKarma = array_merge($result,$signUpData);
+
+        return array_values($categoryKarma);
+    }
+
+    public function createdOrCompletedHelpRequestKarmaPoint($filterData)
+    {
+        $this->db->select("comm_posts.pst_id,comm_posts.pst_loc_id,CASE WHEN comm_posts.pst_id!='' THEN comm_points_master.pma_points  ELSE '0' END as points,comm_posts.pst_title,comm_posts.pst_completed,comm_posts.pst_createdate,comm_posts.pst_updatedate, comm_subcategories.scat_title,comm_posts.pst_isDeleted");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+
+        if($filterData['help_type'] == 'COMPLETED_HELP')
+        {
+            $this->db->join('comm_points_master','comm_points_master.pma_shortcode="COMPLETED_HELP"','left');
+            $this->db->where('comm_posts.pst_id IN (select hlp_pst_id from comm_help where hlp_usr_id_frm='.$filterData['usr_id'].' AND hlp_completed ="Yes")');
+        }
+        else
+        {
+            $this->db->join('comm_points_master','comm_points_master.pma_shortcode="CREATE_HELP"','left');
+            $this->db->where('comm_posts.pst_usr_id',$filterData['usr_id']);
+            $this->db->where('comm_posts.pst_completed','Yes');
+            $this->db->where('comm_posts.pst_id IN (select hlp_pst_id from comm_help where hlp_usr_id_to='.$filterData['usr_id'].' AND hlp_completed ="Yes" AND hlp_pst_id IN (select pst_id from comm_posts where pst_usr_id='.$filterData['usr_id'].' AND pst_cat_id ='.$filterData['cat_id'].'))');
+        }
+        
+        $this->db->where('comm_posts.pst_cat_id',$filterData['cat_id']);
+        $this->db->limit($filterData['limit'],$filterData['start']);
+        $this->db->order_by('comm_posts.pst_createdate','desc');
+        $resultResponse = $this->db->get()->result_array();
+
+        if($resultResponse)
+        {
+            return $resultResponse;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function hiveContributionKarmaPoint($filterData)
+    {
+        $sql1 = "SELECT count(comm_upvote.upv_pst_ans_id) DIV 5*comm_points_master.pma_points as points, comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_createdate,comm_subcategories.scat_title,comm_posts.pst_isDeleted,comm_posts.pst_loc_id
+                FROM comm_upvote
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_upvote.upv_pst_ans_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id=comm_posts.pst_scat_id
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'POST_UPVOTE'
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_posts.pst_id
+                FROM comm_posts
+                WHERE pst_usr_id = ".$filterData['usr_id']."
+                AND pst_cat_id = ".$filterData['cat_id'].")
+                AND comm_upvote.upv_type = 'Post'
+                AND comm_posts.pst_usr_id = ".$filterData['usr_id']."
+                GROUP by (upv_pst_ans_id)";
+
+        $postUpvoteCount = $this->db->query($sql1)->result_array();
+        $sql2 = "SELECT count(comm_upvote.upv_pst_ans_id) DIV 5*comm_points_master.pma_points as points, comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_createdate,comm_subcategories.scat_title,comm_posts.pst_isDeleted,comm_posts.pst_loc_id
+                FROM comm_upvote
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_upvote.upv_pst_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id=comm_answers.and_pst_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id=comm_posts.pst_scat_id
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'ANSWER_UPVOTE'
+                WHERE comm_upvote.upv_pst_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers
+                WHERE ans_usr_id = ".$filterData['usr_id'].")
+                AND comm_upvote.upv_type = 'Answer'
+                AND comm_answers.ans_usr_id = ".$filterData['usr_id']."
+                GROUP by (comm_upvote.upv_pst_ans_id)";
+
+        $ansUpvoteCount = $this->db->query($sql2)->result_array();
+
+
+        $sql3 = "SELECT count(comm_greatanswer.gta_ans_id)*comm_points_master.pma_points as points,comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_createdate,comm_subcategories.scat_title,comm_posts.pst_isDeleted,comm_posts.pst_loc_id
+                FROM comm_greatanswer
+                LEFT JOIN comm_answers ON comm_answers.ans_id=comm_greatanswer.gta_ans_id
+                LEFT JOIN comm_posts ON comm_posts.pst_id =comm_answers.and_pst_id
+                LEFT JOIN comm_subcategories ON comm_subcategories.scat_id =comm_posts.pst_scat_id
+                LEFT JOIN comm_points_master ON comm_points_master.pma_shortcode= 'GREAT_ANSWER'
+                WHERE comm_greatanswer.gta_ans_id IN(SELECT comm_answers.ans_id
+                FROM comm_answers
+                WHERE ans_usr_id = ".$filterData['usr_id'].")
+                GROUP BY(comm_greatanswer.gta_ans_id)";
+
+        $greatAnsCount = $this->db->query($sql3)->result_array();
+
+        $newHiveArray = array_merge($postUpvoteCount,$ansUpvoteCount);
+
+        $newHiveArray2 = array_merge($newHiveArray,$greatAnsCount);
+
+        foreach($newHiveArray2 as $subKey => $subArray)
+        {
+            if($subArray['points'] == 0)
+            {
+                unset($newHiveArray2[$subKey]);
+            }
+        }
+
+        $result = array();
+        foreach ($newHiveArray2 as $item) 
+        {
+            if (!isset($result[$item['pst_id']])) 
+            {
+                $result[$item['pst_id']] = $item;
+            }
+            else 
+            {
+                $result[$item['pst_id']]["points"] += $item["points"];
+                $result[$item['pst_id']]["points"] = (string)$result[$item['pst_id']]["points"];
+            }
+        }
+        return array_values($result);
+    }
+
+    public function allTypeHelpRequestChatsById($chatData)
+    {
+        
+        $this->db->select("comm_users.usr_fname,comm_users.usr_id,CASE WHEN comm_users.usr_image!='' THEN CONCAT('".USER_PROFILE_IMAGE."',comm_users.usr_image)  ELSE comm_users.usr_image END as profile_image");
+        $this->db->from('comm_help');
+
+        if($chatData['filter'] == 'MY_CHAT')
+        {
+            $this->db->join('comm_users','comm_users.usr_id=comm_help.hlp_usr_id_frm','left');
+            $this->db->where('comm_help.hlp_usr_id_to',$chatData['usr_id']);
+        }
+        elseif ($chatData['filter'] == 'OTHER_CHAT') 
+        {
+            $this->db->join('comm_users','comm_users.usr_id=comm_help.hlp_usr_id_to','left');
+            $this->db->where('comm_help.hlp_usr_id_frm',$chatData['usr_id']);
+        }
+
+        $this->db->where('comm_help.hlp_pst_id',$chatData['pst_id']);
+        $this->db->limit($chatData['limit'],$chatData['start']);
+        $this->db->order_by('comm_help.hlp_createdate','desc');
+        $createdResponse = $this->db->get()->result_array();
+        
+        if($createdResponse)
+        {
+            return $createdResponse;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function manageMyOrOtherHelpRequest($postData)
+    {
+        if($postData['usr_id'])
+        {
+            $select = 'DISTINCT(CASE WHEN COUNT(rpt_pst_ans_usr_id)>=3 THEN rpt_pst_ans_usr_id END) AS id';
+            $where = array('rpt_pst_ans_usr_id' =>$postData['usr_id'], 'rpt_type' =>'CHAT');
+            $userIdReport = $this->singleData($select,'comm_report',$where); 
+        }
+
+        $this->db->select("CASE WHEN comm_report.rpt_id!='' THEN 'YES' ELSE 'NO' end as usr_report,comm_posts.pst_usr_id,comm_posts.pst_id,comm_posts.pst_title,comm_posts.pst_completed,comm_posts_extended.pext_date, comm_subcategories.scat_title");
+        $this->db->from('comm_posts');
+        $this->db->join('comm_subcategories','comm_subcategories.scat_id=comm_posts.pst_scat_id','left');
+        $this->db->join('comm_posts_extended','comm_posts_extended.pext_pst_id=comm_posts.pst_id','left');
+        
+        $this->db->join("comm_report","comm_posts.pst_usr_id = comm_report.rpt_pst_ans_usr_id AND comm_report.rpt_type = 'CHAT' AND comm_report.rpt_usr_id =".$postData['login_usr_id']."",'left');
+        
+        if($postData['usr_id'])
+        {
+            $this->db->where('comm_posts.pst_usr_id',$postData['usr_id']);
+            $this->db->where('comm_posts.pst_id IN (SELECT DISTINCT hlp_pst_id FROM comm_help WHERE hlp_usr_id_to = '.$postData['login_usr_id'].')');
+            $this->db->where('comm_posts.pst_usr_id!=',$userIdReport['id'],FALSE);
+        }
+        else
+        {
+            $this->db->where('comm_posts.pst_id IN (SELECT DISTINCT hlp_pst_id FROM comm_help WHERE hlp_usr_id_frm = '.$postData['login_usr_id'].')');
+            $this->db->where('comm_posts.pst_usr_id!=',$postData['login_usr_id']);
+        }
+
+        if($postData['pst_completed'])
+        {
+             $this->db->where('comm_posts.pst_completed',$postData['pst_completed']);
+        }
+        else
+        {
+             $this->db->where('comm_posts.pst_completed','NO');
+        }
+
+        $this->db->where('comm_posts.pst_cat_id',$postData['pst_cat_id']);
+        $this->db->where('comm_posts.pst_isDeleted',0);
+        $this->db->where('comm_posts.pst_loc_id',$postData['pst_loc_id']);
+        $this->db->limit($postData['limit'],$postData['start']);
+        $this->db->order_by('comm_posts.pst_createdate','desc');
+        $helpResponse = $this->db->get()->result_array();
+        
+        if($helpResponse)
+        {
+            return $helpResponse;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function getAllUserChatList($usrId,$pstLocId)
+    {
+        $sql = "SELECT * FROM 
+                (
+                    SELECT comm_posts.pst_usr_id,comm_users.usr_fname, comm_users.usr_id, comm_help.hlp_pst_id
+                    FROM comm_help
+                    LEFT JOIN comm_posts ON comm_posts.pst_id=comm_help.hlp_pst_id
+                    LEFT JOIN comm_users ON comm_users.usr_id=comm_help.hlp_usr_id_frm
+                    WHERE comm_posts.pst_isDeleted = 0
+                    AND comm_help.hlp_usr_id_to = ".$usrId."
+                    AND comm_posts.pst_completed = 'NO'
+                    AND comm_posts.pst_loc_id = ".$pstLocId."
+                UNION ALL
+                    SELECT comm_posts.pst_usr_id,comm_users.usr_fname, comm_users.usr_id, comm_help.hlp_pst_id
+                    FROM comm_help
+                    LEFT JOIN comm_posts ON comm_posts.pst_id=comm_help.hlp_pst_id
+                    LEFT JOIN comm_users ON comm_users.usr_id=comm_help.hlp_usr_id_to
+                    WHERE comm_posts.pst_isDeleted = 0
+                    AND comm_help.hlp_usr_id_frm = ".$usrId."
+                    AND comm_posts.pst_completed = 'NO'
+                    AND comm_posts.pst_loc_id = ".$pstLocId."
+                ) as usr_chat";
+
+        $userChat = $this->db->query($sql)->result_array();
+
+        if($userChat)
+        {
+            return $userChat;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    //-- function for send notification
+    public function sendNotification($usr_deviceId,$message)
+    {  
+        if($usr_deviceId)
+        {
+            //header('Access-Control-Allow-Origin:*');
+            $devices = $usr_deviceId;
+            $msg = $message['ntfy_message'];
+            $body = "";
+            $type = $message['ntfy_pst_type'];
+            $pstId =  isset($notifyMessage['hlp_pst_id'])?$notifyMessage['hlp_pst_id']:"";
+            $usrIdTO = isset($notifyMessage['hlp_usr_id_to'])?$notifyMessage['hlp_usr_id_to']:"";
+            $usrIdFrm = isset($notifyMessage['hlp_usr_id_frm'])?$notifyMessage['hlp_usr_id_frm']:"";
+            $usrName = isset($notifyMessage['usr_fname'])?$notifyMessage['usr_fname']:"";
+
+            $error = "";
+            if($devices=="")
+            {
+                $error = "device id not found,Please send id in proper format";
+                die;
+            }
+            //$payload['aps'] = array('alert' => $msg, 'badge' => 1, 'sound' => 'default'); 
+
+            $payload['aps'] = array('alert' => array('title' => $body,'body' => $msg), 'badge' => 1, 'sound' => 'default','type'=>$type,'hlp_pst_id' => $pstId,'hlp_usr_id_to' =>$usrIdTO,'hlp_usr_id_frm' =>$usrIdFrm,'usr_fname'=>$usrName);
+
+            $payload = json_encode($payload);
+            $options = array('ssl' => array(
+              'local_cert' =>realpath(dirname(__FILE__)).'/Push_dev.pem',// developer certificate
+              'passphrase' => ''
+            ));
+
+            $streamContext = stream_context_create();
+            stream_context_set_option($streamContext, $options);
+
+            $apns = stream_socket_client('ssl://gateway.sandbox.push.apple.com:2195', $error, $errorString, 60, STREAM_CLIENT_CONNECT, $streamContext);
+            //$apns = stream_socket_client('ssl://gateway.push.apple.com:2195', $error, $errorString, 60, STREAM_CLIENT_CONNECT, $streamContext);
+
+            // Use for production
+            if (!$apns){
+                $error =  json_encode(array('success' => false, "message"=>"Failed to connect: $err $errstr") );
+            } else {
+                $apnsMessage = chr(0) . chr(0) . chr(32) . pack('H*', str_replace(' ', '', $devices)) . chr(0) . chr(strlen($payload)) . $payload;
+                
+                $result = fwrite($apns, $apnsMessage);
+                //print_r("----->".$result);
+                    if (!$result) {
+                        $error = json_encode(array('success' => false, "message"=>"Message not delivered"));
+                    }else{
+                        $error = json_encode(array('success' => true, "message"=>"Message successfully delivered" ));
+                    }
+                fclose($apns);
+            }
+
+            return $error;
+        }
+        else
+        {
+            return array('message' => "Device is empty");
+        }
+    }
+
+    public function getNotificationList($notifyData)
+    {
+        $this->db->select("comm_notification.ntfy_id,comm_notification.ntfy_from,comm_notification.ntfy_to,comm_notification.ntfy_pst_id as pst_id,comm_notification.ntfy_type,comm_notification.ntfy_pst_type,comm_notification.ntfy_isRead,comm_notification.ntfy_createdate,comm_notification.ntfy_updatedate,comm_posts.pst_usr_id as pst_crtr_id,comm_notification.ntfy_message AS pst_ans_dscptn,comm_users.usr_fname as pst_crtr_name,user_tbl.usr_fname,comm_posts.pst_loc_id");
+        $this->db->from('comm_notification');
+        $this->db->join('comm_posts','comm_posts.pst_id=comm_notification.ntfy_pst_id','left');
+        $this->db->join('comm_users','comm_users.usr_id=comm_posts.pst_usr_id','left');
+        $this->db->join('comm_users user_tbl','user_tbl.usr_id=comm_notification.ntfy_from','left');
+        $this->db->where('comm_notification.ntfy_to',$notifyData['usr_id']);
+        $this->db->limit($notifyData['limit'],$notifyData['start']);
+        $this->db->order_by('comm_notification.ntfy_createdate','desc');
+        $notifyDataResponse = $this->db->get()->result_array();
+        $readCount = $this->singleData('count(ntfy_id) as count','comm_notification',array('ntfy_isRead' =>0,'ntfy_to' =>$notifyData['usr_id']));
+        
+        if($notifyDataResponse)
+        {
+           return array('success' => true, 'data' => $notifyDataResponse,'count' => $readCount['count'], 'message' => 'Get successfully');
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+   

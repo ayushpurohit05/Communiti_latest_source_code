@@ -1,0 +1,91 @@
+.user_management{
+	background-color: #fff;
+    -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    padding: 20px 50px;
+}
+.user_management ul li{
+	list-style-type: none;
+}
+.user_management_icon{
+	line-height: 105px;
+	text-align: left;
+	.editIcon {
+		width: 22px;
+	}
+	.upVoteImgCls{
+		height: 15px;    
+		left: 14px;
+		position: absolute;top: 8px;
+	}
+	.downImg {
+		text-align: left;
+		height: 15px;
+	}
+	span {
+		position: absolute;
+	    left: 24px;
+	    top: -14px;
+     	height: 0;
+	}
+	.replyPost {
+		height: 25px;
+	    position: absolute;
+	    top: 25px;
+	    left: 20px;
+	}
+	.ViewPost {
+		height: 25px;
+	    position: absolute;
+		top: 20px;
+    	left: 45px;
+	}
+	.greatAnsBtn {
+		position: absolute;
+		top: 15px;
+	}
+	.disActive {
+		background-color: #8cb1b7;
+    	border-color: #8cb1b7;
+	}
+}
+.border-none td{
+	border-top:none !important;
+}
+.form-group {
+    margin-bottom: 8px;
+    padding: 0 15px;
+}
+.headerBar {
+	padding-bottom: 15px;
+}
+.discrOverflow{
+    white-space: nowrap; 
+    text-overflow: ellipsis !important; 
+    overflow: hidden;
+}
+.searchCol {
+	.backBtn {
+		float: right;
+	}
+	input {
+		width: 50%;
+		float: left;
+	}
+}
+.form_margin{
+    margin:15px auto;
+    .cardMainDiv {
+		.profileImg{
+		    text-align: -webkit-center;
+		    img{
+				width: 100px;
+				height: 100px;
+				margin-bottom: 20px;
+				border-radius: 5%;
+			}
+		}
+    }
+}

@@ -1,0 +1,121 @@
+<div class="main-container" *ngIf="!addPostPageCheck">
+    <div class="row headerBar">
+        <div class="col-6">
+            <button class="btn btn-info addBtn">Existing User List</button>
+        </div>
+        <div class="col-6 searchCol">
+            <input type="text" class="form-control" placeholder="Search by Name" [(ngModel)]="search" (keyup)="onKeydown()"  *ngIf="!editUsercheck">
+            <button class="btn btn-info backBtn" (click)="gotoBack()">Back</button>
+        </div>
+    </div>
+    <div class="container-fluid" *ngIf="!editUsercheck">
+        <div class="user_management" *ngFor="let dummyUser of dummyUserList; let i = index">
+            <div class="row">
+                <div class="col-xl-3 col-lg-3 col-xs-3">
+                    <img [src]="dummyUser.profile_image ? dummyUser.profile_image :'assets/image/Profile.jpg'" width="100px" class="img-c">
+                </div>
+                <div class="col-xl-7 col-lg-7 col-xs-9">
+                    <ul>
+                        <h3>{{dummyUser.usr_fname}}</h3>
+                        <li>{{dummyUser.usr_email}}</li>
+                        <!-- <li>{{dummyUser.loc_name}}</li> -->
+                    </ul>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-xs-12 user_management_icon">
+                    <img src="assets/icons/edit.png" class="editIcon" (click)="goEditUser(dummyUser);">
+                    <img src="assets/icons/view.png" (click)="goAddPostPage(dummyUser)">
+                </div>
+            </div>
+        </div>
+	    <div class="col-xs-12 col-12">
+	       <pagination class="pagination-md" [totalItems]="totalItems" [(ngModel)]="currentPage" (pageChanged)="pageChanged($event)" [itemsPerPage]="itemsPerPage" [boundaryLinks]="true"></pagination>
+	    </div>
+    </div>
+    <div class="container-fluid"  *ngIf="editUsercheck">
+        <div class="col-xl-6 form_margin">
+            <div class="card mobile_top_space cardMainDiv">
+                <div class="card-body addUser">
+                    <form class="form-horizontal" #userEditForm="ngForm"    [formGroup]="editUserData" (ngSubmit)="userEditForm.valid && editUser(userEditForm.value)" novalidate>
+                        <div class="form-group">
+                            <div class="profileImg text-center" >  
+                                <img [src]="myProfileViewObj.displayImage ? myProfileViewObj.displayImage :'assets/image/Profile.jpg'"/>
+                                <div class="">
+                                  <input type="file" (change)="fileChange($event)" accept="image/*">    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">First Name</label>
+                            <input type="text" class="form-control" formControlName="fName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Last Name</label>
+                            <input type="text" class="form-control" formControlName="lName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">User Name</label>
+                            <input type="text" class="form-control" formControlName="userName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">E-mail</label>
+                            <input type="text" formControlName="email" class="form-control" required>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label class="control-label">Location</label>
+                            <select class="custom-select form-control" formControlName="location">
+                                <option selected>Select Location</option>
+                                <option value="{{location.loc_id}}" *ngFor="let location of locationList">{{location.loc_name}}</option>
+                            </select>
+                        </div> -->
+                        <div class="form-group">
+                            <button [disabled]="editUserData.invalid" [ngClass]="{disabled : !editUserData.valid}" class="btn btn-info btn-block">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> 
+    </div>
+</div>
+<div class="main-container" *ngIf="addPostPageCheck">
+    <div class="row">
+        <div class="col-6">
+            <button class="btn btn-info addBtn" (click)="openAddNewPostPage();">New Post</button>
+            <button class="btn btn-info addBtn" (click)="goExistingPost();" *ngIf="!addUserCheck">Action on existing post</button>
+        </div>
+        <div class="col-6 searchCol">
+            <button class="btn btn-info backBtn" (click)="gotoBackList()">Back</button>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="col-xl-6 form_margin" *ngIf="addUserCheck">
+            <div class="card mobile_top_space cardMainDiv">
+                <div class="card-body addUser">
+                    <form class="form-horizontal" #userAddForm="ngForm"    [formGroup]="newPostData" (ngSubmit)="userAddForm.valid && addNewPost(userAddForm.value)" novalidate>
+                        <div class="form-group">
+                            <label class="control-label">Choose Hive</label>
+                            <select class="custom-select form-control" formControlName="group">
+                                <option selected>Select Location</option>
+                                <option value="{{group.grp_id}}" *ngFor="let group of groupList">{{group.grp_title}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Title</label>
+                            <input type="text" class="form-control" formControlName="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Add Tags</label>
+                            <tag-input formControlName="tags"></tag-input>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Add description</label>
+                            <textarea type="textarea" class="form-control" formControlName="description" maxlength="900" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button [disabled]="newPostData.invalid" [ngClass]="{disabled : !newPostData.valid}" class="btn btn-info btn-block">Create Post</button>
+                        </div>
+                    </form>
+                </div>
+           </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+<div class="main-container">
+    <div class="container-fluid">
+        <div class="user_management" *ngFor="let userDetails of userList let i = index">
+            <div class="row" >
+                <div class="col-xl-3 col-lg-3 col-xs-3">
+                    <img [src]="userDetails.profile_image ? userDetails.profile_image :'assets/image/Profile.jpg'" width="100px" class="img-c">
+                </div>
+                <div class="col-xl-7 col-lg-7 col-xs-9">
+                    <ul>
+                        <h3>{{userDetails.usr_fname}} {{userDetails.usr_lname}}</h3>
+                        <li>{{userDetails.usr_email}}</li>
+                        <li>{{userDetails.usr_social_id}}</li>
+                    </ul>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-xs-12 user_management_icon">
+                    <img src="assets/icons/active.png" *ngIf ="userDetails.Status == 'Active'" (click)="blockUnblockUser(userDetails,i);">
+                    <img src="assets/icons/block.png"  *ngIf ="userDetails.Status == 'Deactive'" (click)="blockUnblockUser(userDetails,i);">
+                    <img src="assets/icons/view.png" (click)="viewUserDetails(template,userDetails)">
+                </div>
+            </div>
+        </div>
+	 <div class="col-xs-12 col-12" *ngIf ="totalItems!=0">
+           <pagination class="pagination-md" [totalItems]="totalItems" [(ngModel)]="currentPage" (pageChanged)="pageChanged($event)" [itemsPerPage]="itemsPerPage" [boundaryLinks]="true"></pagination>
+        </div>
+        <ng-template #template>
+          <div class="modal-header">
+            <h4 class="modal-title pull-left">User Info</h4>
+            <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+  <tbody>
+    <tr class="border-none">
+      <td>User ID:</td>
+      <td>{{userDetails.usr_id}}</td>
+    </tr>
+        <tr>
+      <td>Created date:</td>
+      <td>{{userDetails.usr_createddate}}</td>
+     </tr>
+      <tr>
+      <td>Date of birth:</td>
+      <td>{{userDetails.usr_dob}}</td>
+    </tr>
+      <tr>
+      <td>Email:</td>
+      <td>{{userDetails.usr_email}}</td>
+    </tr>
+      <tr>
+      <td>Fb location:</td>
+      <td>{{userDetails.usr_fb_location}}</td>
+    </tr>
+      <tr>
+      <td>First name:</td>
+      <td>{{userDetails.usr_fname}}</td>
+    </tr>
+      <tr>
+      <td>Last name:</td>
+      <td>{{userDetails.usr_lname}}</td>
+    </tr>
+    <tr>
+      <td>Gender:</td>
+      <td>{{userDetails.usr_gender}}</td>
+    </tr>
+    <tr>
+      <td>Social ID:</td>
+      <td>{{userDetails.usr_social_id}}</td>
+    </tr>
+    <tr>
+      <td>Social Name:</td>
+      <td>{{userDetails.usr_social_name}}</td>
+    </tr>
+  </tbody>
+</table>
+              <!-- ser Id:{{userDetails.usr_id}}
+              <p>usr_createddate:{{userDetails.usr_createddate}}</p>
+              <p>usr_dob:{{userDetails.usr_dob}}</p>
+              <p>usr_email:{{userDetails.usr_email}}</p>
+              <p>usr_fb_location:{{userDetails.usr_fb_location}}</p>
+              <p>usr_fname:{{userDetails.usr_fname}}</p>
+              <p>usr_lname:{{userDetails.usr_lname}}</p>
+              <p>usr_gender:{{userDetails.usr_gender}}</p>
+              <p>usr_social_id:{{userDetails.usr_social_id}}</p>
+              <p>usr_social_name:{{userDetails.usr_social_name}}</p> -->
+          </div>
+        </ng-template>
+    </div>
+</div>

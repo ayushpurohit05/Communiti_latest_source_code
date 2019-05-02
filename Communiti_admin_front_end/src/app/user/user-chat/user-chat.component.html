@@ -1,0 +1,49 @@
+<div class="main-container">
+<div id="frame">
+	<div id="sidepanel">
+		<div id="contacts">
+			<ul *ngFor="let userData of userList| orderBy : 'count' : 'case-insensitive' let i =index" (click) ="getMessage(userData.usr_id,userData.profile_image)">
+				<li class="contact" [ngClass]="userData.usr_id == userSelectedShow ? 'active' : ''">
+					<div class="wrap">
+						<img [src]="userData.profile_image ? userData.profile_image :'assets/image/Profile.jpg'"  alt="" />
+						<div class="meta">
+							<p class="name">{{userData.usr_fname}} {{userData.usr_lname}}</p>
+							<!-- <p *ngIf = "userData.count!=0">{{userData.count}}</p> -->
+							<span *ngIf = "userData.count!=0" class="notification">{{userData.count}}</span>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="content">
+		<div #scrollMe class="messages" (scroll) = "scroll($event)">
+			<ul *ngFor="let item of messageList">
+				<li class="sent" style="position: relative;" *ngIf ="item.sender!='admin'">
+					<div class="left_chatbox">
+					<img  [src]="userProfileImage ? userProfileImage :'assets/image/Profile.jpg'" alt="" />
+					<p>{{ item.message }}</p>
+				</div>
+					<span class="leftTime">{{item.timestamp | UtcFilterPipe}}</span>
+				</li>
+				<li class="replies" style="position: relative;" *ngIf ="item.sender=='admin'">
+					<div class="right_chatbox">
+					<img  [src]="loginAdminData.adm_image ? loginAdminData.adm_image :'assets/image/Profile.jpg'" alt="" />
+					<p>{{ item.message }}</p>
+				</div>
+					<span class="rightTime">{{item.timestamp | UtcFilterPipe }}</span>
+				</li>
+			</ul>
+		</div>
+		<div class="message-input" *ngIf ="showMesg">
+			<form class="form-horizontal top_bottom" [formGroup]="messageData" (ngSubmit)="send();" #myform="ngForm" novalidate>
+			<div class="wrap">
+			<input type="text"  placeholder="Write your message..." formControlName="msg" required />
+			<i class="fa fa-paperclip attachment" aria-hidden="true"></i>
+			<button class="submit" [disabled]="!messageData.valid" [ngClass]="{disabled : !messageData.valid}"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+			</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>

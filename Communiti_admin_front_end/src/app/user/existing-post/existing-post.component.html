@@ -1,0 +1,115 @@
+<div class="main-container">
+    <div class="row headerBar" *ngIf="!commentCheck">
+        <div class="col-4">
+            <button class="btn btn-info addBtn">Existing Post</button>
+        </div>
+        <div class="col-4 searchCol">
+            <!-- <select class="form-control custom-select" #location (change)="selectLocation(location.value);">
+                <option selected>Select Location</option>
+                <option value="{{location.loc_id}}" *ngFor="let location of locationList">{{location.loc_name}}</option>
+            </select> -->
+        </div>
+        <div class="col-4 searchCol">
+            <input type="text" class="form-control" placeholder="Search by Name" [(ngModel)]="search" (keyup)="onKeydown()">
+            <button class="btn btn-info backBtn" (click)="gotoBack()">Back</button>
+        </div>
+    </div>
+    <div class="row headerBar" *ngIf="commentCheck">
+        <div class="col-12 searchCol">
+            <button class="btn btn-info backBtn" (click)="gotoPostList()">Back</button>
+        </div>
+    </div>
+    <div class="container-fluid" *ngIf="!commentCheck">
+        <div class="user_management" *ngFor="let post of existingPostList; let i = index">
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-xs-4">
+                    <ul>
+                        <h6>{{post.pst_title}}</h6>
+                        <li class="discrOverflow">{{post.pst_description}}</li>
+                    </ul>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-xs-8">
+                    <ul>
+                        <h6>{{post.usr_fname}}</h6>
+                        <h6>{{post.pst_createdate * 1000 | date:'dd MMM yyyy' }}</h6>
+                    </ul>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-xs-12 user_management_icon">
+                    <div class="row">
+                        <div class="col-4">
+                            <img *ngIf="post.usr_upvote == 'NO'" src="assets/icons/up_vote.png" class="upVoteImgCls"  (click)="upVote(post)">
+                            <span>{{post.upvote_count}}</span>
+                            <img  *ngIf="post.usr_upvote == 'YES'" src="assets/icons/up_active.png" class="upVoteImgCls">
+                            <img src="assets/icons/down_vote.png" class="downImg" *ngIf="post.usr_upvote == 'YES'" style="" (click)="upVote(post)">
+                        </div>
+                        <div class="col-8">
+                            <img src="assets/icons/icon.png" class="replyPost" style="height: 20px;" (click)="showPostReplyModel(template,post)">
+                            <img class="ViewPost" src="assets/icons/view.png" (click)="clickOnView(post)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	    <div class="col-xs-12 col-12">
+	       <pagination class="pagination-md" [totalItems]="totalItems" [(ngModel)]="currentPage" (pageChanged)="pageChanged($event)" [itemsPerPage]="itemsPerPage" [boundaryLinks]="true"></pagination>
+	    </div>
+    </div>
+    <div class="container-fluid"  *ngIf="commentCheck">
+        <div class="user_management" *ngFor="let comment of postCommentList; let i = index">
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-xs-4">
+                    <img [src]="comment.profile_image ? comment.profile_image :'assets/image/Profile.jpg'" width="100px" class="img-c">
+                </div>
+                <div class="col-xl-6 col-lg-6 col-xs-8">
+                    <ul>
+                        <h6>{{comment.usr_fname}}</h6>
+                        <h6>{{comment.ans_description }}</h6>
+                    </ul>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-xs-12 user_management_icon">
+                    <div class="row">
+                        <div class="col-4">
+                            <img *ngIf="comment.user_upvote == 'NO'" src="assets/icons/up_vote.png" class="upVoteImgCls"  (click)="commentupVote(comment)">
+                            <span>{{comment.count_upvote}}</span>
+                            <img  *ngIf="comment.user_upvote == 'YES'" src="assets/icons/up_active.png" class="upVoteImgCls">
+                            <img src="assets/icons/down_vote.png" class="downImg" *ngIf="comment.user_upvote == 'YES'" style="" (click)="commentupVote(comment)">
+                        </div>
+                        <!-- <div class="col-8">
+                            <img src="assets/icons/icon.png" class="replyPost" style="height: 20px;" (click)="showPostReplyModel(template,post)">
+                            <img class="ViewPost" src="assets/icons/view.png" (click)="clickOnView(post)"> -->
+                           <!--  <button *ngIf="comment.usr_id != this.selectedUserData.usr_id" [ngClass]="comment.great === 'NO' ? 'btn btn-info btn-small greatAnsBtn disActive' : ' btn btn-info btn-small greatAnsBtn'" (click)="setGreatAnswer(comment)">Great Answer</button> 
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-12 col-12">
+           <pagination class="pagination-md" [totalItems]="totalItems" [(ngModel)]="currentPage" (pageChanged)="commentPageChanged($event)" [itemsPerPage]="itemsPerPage" [boundaryLinks]="true"></pagination>
+        </div>
+    </div>
+    <ng-template #template>
+        <div class="modal-header">
+            <h4 class="modal-title pull-left">Post Reply</h4>
+            <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="col-xl-12 form_margin">
+                <div class="card mobile_top_space cardMainDiv">
+                    <div class="card-body addUser">
+                        <form class="form-horizontal" #postReplyForm="ngForm"    [formGroup]="postData" (ngSubmit)="postReplyForm.valid && sendPostReply(postReplyForm.value)" novalidate>
+                            <div class="form-group">
+                                <label class="control-label">Add description</label>
+                                <textarea type="textarea" class="form-control" formControlName="description"  maxlength="900" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <button [disabled]="postData.invalid" [ngClass]="{disabled : !postData.valid}" class="btn btn-info btn-block">Post a comment</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+</div>

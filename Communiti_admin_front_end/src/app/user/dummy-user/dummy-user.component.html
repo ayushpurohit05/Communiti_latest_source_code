@@ -1,0 +1,49 @@
+<div class="main-container">
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-info addBtn" (click)="gotoAddUser()">Add User</button>
+            <button class="btn btn-info addBtn" *ngIf="!addUserCheck" (click)="gotoExistingUser()">Existing User</button>
+            <button class="btn btn-info backBtn" *ngIf="addUserCheck" (click)="gotoBack()">Back</button>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="col-xl-6 form_margin" *ngIf="addUserCheck">
+            <div class="card mobile_top_space cardMainDiv">
+                <div class="card-body addUser">
+                    <form class="form-horizontal" #userAddForm="ngForm"    [formGroup]="userData" (ngSubmit)="userAddForm.valid && addUser(userAddForm.value)" novalidate>
+                        <div class="form-group">
+                            <div class="profileImg text-center" >  
+                                <img [src]="myProfileViewObj.displayImage ? myProfileViewObj.displayImage :'assets/image/Profile.jpg'"/>
+                                <div class="">
+                                  <input type="file" (change)="fileChange($event)" accept="image/*">    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">First Name</label>
+                            <input type="text" class="form-control" formControlName="fName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Last Name</label>
+                            <input type="text" class="form-control" formControlName="lName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">E-mail</label>
+                            <input type="text" formControlName="email" class="form-control" required>
+                        </div>
+                        <!-- <div class="form-group">
+                            <label class="control-label">Location</label>
+                            <select class="custom-select form-control" formControlName="location">
+                                <option selected>Select Location</option>
+                                <option value="{{location.loc_id}}" *ngFor="let location of locationList">{{location.loc_name}}</option>
+                            </select>
+                        </div> -->
+                        <div class="form-group">
+                            <button [disabled]="userData.invalid" [ngClass]="{disabled : !userData.valid}" class="btn btn-info btn-block">Save</button>
+                        </div>
+                    </form>  
+                </div>
+           </div>
+        </div>
+    </div>
+</div>

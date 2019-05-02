@@ -1,0 +1,69 @@
+<div class="main-container">
+   <div class="container-fluid">
+      <div class="row">
+       <table class="table custom_table table-bordered text-center">
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th colspan="2">Help</th>
+      <th colspan="2">Hive</th>
+      <th colspan="2">Great Answer</th>
+      <th></th>
+      <th colspan="2">Flags</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td>Profile Name</td>
+        <td>Profile ID</td>
+        <td>Created</td>
+        <td>Applied</td>
+        <td>Created</td>
+        <td>Commented</td>
+        <td>Given</td>
+        <td>Received</td>
+        <td>Karma Points</td>
+        <td>No. of Flags given</td>
+        <td>No. of Flags received</td>
+        <td>Email</td>
+        <td>Sex</td>
+        <td>Location (from FB)</td>
+        <td>Communiti City</td>
+        <td>Date-Time of account creation
+        <td>Date-Time of last login</td>
+
+    </tr>
+         <tr class="Profile_result" *ngFor="let profile of communitiProfileData">
+        <td>{{profile.Profile_Name}}</td>
+        <td>{{profile.Profile_Id}}</td>
+        <td>{{profile.HelpCreated}}</td>
+        <td>{{profile.HelpApplied}}</td>
+        <td>{{profile.HiveCreated}}</td>
+        <td>{{profile.HiveCommented}}</td>
+        <td>{{profile.GreatAnswerGiven}}</td>
+        <td>{{profile.GreatAnswerRecived}}</td>
+        <td>{{profile.Karma_Points}}</td>
+        <td>{{profile.FlagNoOfFlagGiven}}</td>
+        <td>{{profile.FlagNoOfFlagRecived}}</td>
+        <td>{{profile.Email}}</td>
+        <td>{{profile.Sex}}</td>
+        <td>{{profile.LocationfromFB}}</td>
+        <td>{{profile.CommunitiCity}}</td>
+        <td>{{profile.DateTimeofaccountcreation * 1000 | date:'MMM dd, yyyy h:mm a'}}</td>
+        <td>{{profile.DateTimeoflastlogin * 1000 | date:'MMM dd, yyyy h:mm a'}}</td>
+    </tr>
+  </tbody>
+</table>
+  <div class="col-xs-12 col-12" *ngIf ="totalItems!=0">
+    <pagination class="pagination-md" [totalItems]="totalItems" [(ngModel)]="currentPage" (pageChanged)="pageChanged($event)" [itemsPerPage]="itemsPerPage" [boundaryLinks]="true"></pagination>
+  </div>
+      </div>
+   </div>
+</div>

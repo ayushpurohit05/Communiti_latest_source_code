@@ -1,0 +1,29 @@
+<nav class="sidebar">
+    <div class="list-group">
+        <a routerLink="/dashBoard" routerLinkActive="active" class="list-group-item" [routerLinkActiveOptions]="{ exact: true }">
+            <i class="fa fa-fw fa-dashboard"></i>Dashboard
+        </a>
+        <a routerLink="/user/community" routerLinkActive="active" class="list-group-item">
+            <i class="fa fa-fw fa-user"></i>Communiti Profile
+        </a>
+        <a routerLink="/user/flag-against" routerLinkActive="active" class="list-group-item">
+            <i class="fa fa-fw fa-flag"></i>Flag against user
+        </a>
+        <a routerLink="/user/userManagment" routerLinkActive="active" class="list-group-item">
+            <i class="fa fa-fw fa-bar-chart"></i>User management
+        </a>
+        <a routerLink="/user/dummy-user" [ngClass]="urlCheck == true ? 'active' : ''" class="list-group-item">
+            <i class="fa fa-fw fa-users"></i>Dummy User
+        </a>
+        <a routerLink="/user/user-chat" routerLinkActive="active" class="list-group-item">
+            <i class="fa fa-fw fa-comment"></i>Chat
+            <span class="notification">{{(myCount$ | async)?.myCount}}</span>
+        </a>
+        <a routerLink="/user/user-profile" routerLinkActive="active" class="list-group-item">
+            <i class="fa fa-cogs"></i>Settings 
+        </a>
+        <a class="list-group-item" (click)="logOut();">
+            <i class="fa fa-fw fa-sign-out"></i>Logout
+        </a>
+    </div>
+</nav>

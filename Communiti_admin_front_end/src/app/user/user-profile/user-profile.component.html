@@ -1,0 +1,106 @@
+<div class="main-container">
+	<div class="container-fluid">
+		<div class="tab_menu box_property">
+			<ul class="nav nav-tabs">
+				<li [ngClass]="goMailTab == true ? 'tab_active': ''" (click)="goChangePassword();">
+					<a>My Account</a>
+				</li>
+				<li [ngClass]="goPasswordTab == true ? 'tab_active': ''" (click)="goChangeMail();">
+					<a>Change password</a>
+				</li>
+				<li [ngClass]="goProfileTab == true ? 'tab_active': ''" (click)="goProfile();">
+					<a>Change Profile</a>
+				</li>
+			</ul>
+		</div>
+		<div class="row">
+			<div class="col-xl-6 form_margin"  *ngIf="goMailTab">
+				<div class="card">
+					<div class="card-header">
+						My Account
+					</div>
+					<div class="card-body">
+						<form class="form-horizontal" #changeEmailForm="ngForm" [formGroup]="changeEmailData" (ngSubmit)="changeEmailForm.valid && changeEmail()" novalidate>
+							<div class="form-group">
+								<label class="control-label">Email</label>
+								<input type="email" formControlName="adm_email" class="form-control" required>
+								<p class="errorMessage" *ngIf="changeEmailData.get('adm_email').hasError('required') && changeEmailData.get('adm_email').touched" >
+										Email is required.
+								</p>
+								<p class="errorMessage" *ngIf="!changeEmailData.get('adm_email').hasError('required') && (changeEmailData.get('adm_email').status == 'INVALID') && changeEmailData.get('adm_email').touched">Email is invalid.
+								</p>
+							</div>
+							<div class="form-group">
+								<label class="control-label">Username</label>
+								<input type="email" formControlName="adm_userName" class="form-control" required>
+								<p class="errorMessage" *ngIf="changeEmailData.get('adm_userName').hasError('required')" >
+									Email is required.
+								</p>
+							</div>
+							<div class="form-group">
+								<button class="btn btn-info btn-block" [disabled]="!changeEmailData.valid" [ngClass]="{disabled : !changeEmailData.valid}">Submit
+								</button>
+							</div>
+						</form>  
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-6 form_margin"  *ngIf="goPasswordTab">
+				<div class="card mobile_top_space">
+					<div class="card-header">
+						Change Password
+					</div>
+					<div class="card-body">
+						<form class="form-horizontal" #changesPasswordForm="ngForm"    [formGroup]="changePasswordData" (ngSubmit)="changesPasswordForm.valid && changePassword()" novalidate>
+							<div class="form-group">
+								<label class="control-label">Old password</label>
+								<input type="password" class="form-control" formControlName="oldPassword" required>
+								<span class="errorMessage" *ngIf="changePasswordData.get('oldPassword').hasError('required') && changePasswordData.get('oldPassword').touched" >Old Password is required .</span>
+								<span *ngIf="changePasswordData.get('oldPassword').status == 'VALID'&& changePasswordData.get('oldPassword').untouched" >
+							 	</span>
+							</div>
+							<div class="form-group">
+								<label class="control-label">New password</label>
+								<input type="password" formControlName="newPassword" class="form-control" required>
+								<span class="errorMessage" *ngIf="changePasswordData.get('newPassword').hasError('required') && changePasswordData.get('newPassword').touched" >New Password is required .</span>
+								<span *ngIf="changePasswordData.get('newPassword').status == 'VALID'&& changePasswordData.get('newPassword').untouched" ></span>
+							 </div>
+							<div class="form-group">
+								<label class="control-label">Confirm new password</label>
+								<input type="password"formControlName="confirmPassword" class="form-control" required>
+								<span class="errorMessage" *ngIf="changePasswordData.get('confirmPassword').hasError('required') && changePasswordData.get('confirmPassword').touched" >Confirm password is required .</span>
+								<span class="errorMessage" *ngIf="!changePasswordData.get('confirmPassword').hasError('required') && (changePasswordData.get('confirmPassword').status == 'INVALID')&& changePasswordData.get('confirmPassword').touched" > Confirm password is not matched.</span>
+								<span *ngIf="changePasswordData.get('confirmPassword').status == 'VALID'&& changePasswordData.get('confirmPassword').untouched" ></span>
+							</div>
+								<div class="form-group">
+									<button [disabled]="changePasswordData.invalid" [ngClass]="{disabled : !changePasswordData.valid}" class="btn btn-info btn-block">Change password</button>
+							 </div>
+						</form>  
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-6 form_margin"  *ngIf="goProfileTab">
+				<div class="card custom_card">
+					<div class="card-header">
+					Change Profile
+					</div>
+					<div class="card-body">
+						<div class="form-group">
+							<div class="profileImg text-center" >  
+								<img [src]="myProfileViewObj.displayImage ? myProfileViewObj.displayImage :'assets/image/Profile.jpg'"/>
+								<div class="">
+									<input type="file" (change)="fileChange($event)" accept="image/*">    
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<button class="btn btn-info btn-block" (click)="changeEmail()">Change Profile
+							</button>
+					 	</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+

@@ -1,0 +1,22 @@
+.user_management{
+	background-color: #fff;
+    -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    padding: 20px 50px;
+}
+.user_management ul li{
+	list-style-type: none;
+}
+.user_Profile{
+	width:100px;
+	border-radius:50%;
+}
+.user_management_icon{
+	line-height: 105px;
+	text-align: right;
+}
+.border-none td{
+	border-top:none !important;
+}

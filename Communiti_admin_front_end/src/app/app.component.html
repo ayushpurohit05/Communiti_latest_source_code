@@ -1,0 +1,12 @@
+<div class="default">
+  <section>
+  	<div *ngIf="(authService.isLogin() && isLoggedIn$ | async)">
+  		<app-header></app-header>
+    	<app-left-sidebar></app-left-sidebar>
+  	</div>
+    <main>
+	    <app-loading-indicator></app-loading-indicator>    	
+      <router-outlet></router-outlet>
+    </main>
+  </section>
+</div>

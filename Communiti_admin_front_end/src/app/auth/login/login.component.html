@@ -1,0 +1,24 @@
+
+<div class="cover">
+    <form class="form-signin text-center" #loginForm="ngForm" [formGroup]="loginUserData" (ngSubmit)="loginForm.valid && login()" novalidate>
+      <img class="mb-4" src="./assets/icons/logo.png" alt="" width="120">
+      <div class="form-group">
+      <label for="inputEmail" class="sr-only">Email address</label>
+      <input type="email" class="form-control custom_from_control" placeholder="Email address" required formControlName="adm_email">
+      <p class="errorMessage" *ngIf="loginUserData.get('adm_email').hasError('required') && loginUserData.get('adm_email').touched" >
+        Email is required.
+      </p>
+      <p class="errorMessage" *ngIf="!loginUserData.get('adm_email').hasError('required') && (loginUserData.get('adm_email').status == 'INVALID') && loginUserData.get('adm_email').touched">Email is invalid.
+      </p>
+      </div>
+      <div class="form-group">
+      <label for="inputPassword" class="sr-only">Password</label>
+      <input type="password" class="form-control custom_from_control" placeholder="Password" required formControlName="adm_password">
+      <p class="errorMessage" *ngIf="loginUserData.get('adm_password').hasError('required') && loginUserData.get('adm_password').touched " >
+        Password is required.
+      </p>
+     </div>
+      <button class="btn btn-lg btn-custom btn-block" type="submit" [disabled]="!loginUserData.valid" [ngClass]="{disabled : !loginUserData.valid}" >Sign in</button>
+      <p class="forgot_pass" routerLink="/forgot">Forgot password ?</p>
+    </form>
+  </div>
